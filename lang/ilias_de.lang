@@ -1,0 +1,286 @@
+//
+// Copyright (c) 2018 internetlehrer GmbH
+// GPLv2, see LICENSE 
+// 
+// German Language File for xAPI Plugin
+//
+
+<!-- language file start -->
+cat_create_xxcf#:#Neues xAPI-Objekt anlegen
+crs_create_xxcf#:#Neues xAPI-Objekt anlegen
+xxcf#:#xAPI-Objekt
+xxcf_add#:#Hinzufügen
+xxcf_copy#:#xAPI-Objekt kopieren
+xxcf_created#:#Das xAPI-Objekt wurde hinzugefügt
+xxcf_delete#:#xAPI-Objekt löschen
+xxcf_edit_permission#:#Rechteeinstellungen ändern
+xxcf_new#:#xAPI-Objekt hinzufügen
+xxcf_read#:#xAPI-Objekt verwenden
+xxcf_visible#:#xAPI-Objekt ist sichtbar
+xxcf_write#:#xAPI-Objekt konfigurieren
+fold_create_xxcf#:#Neues xAPI-Objekt anlegen
+grp_create_xxcf#:#Neues xAPI-Objekt anlegen
+obj_xxcf#:#xAPI-Objekt
+objs_xxcf#:#xAPI-Objekte
+xxcf_apply#:#Anwenden
+xxcf_availability#:#Verfügbarkeit
+xxcf_configuration#:#Konfiguration der xAPI-Objekte
+create_type#:#Neuen LRS-Typ definieren
+delete_type#:#Typdefinition löschen
+xxcf_description_info#:#Die Beschreibung wird in Auflistungen unter dem Titel angezeigt
+xxcf_edit_type#:#Typ-Definition bearbeiten
+instructions#:#Anleitung
+xxcf_instructions_info#:#Die Anleitung wird auf der Info-Seite angezeigt.
+xxcf_message_type_not_available#:#xAPI-Objekte dieses Typs sind leider nicht mehr verfügbar.
+xxcf_online_info#:#Damit wird das Objekt sichtbar für andere Nutzer
+xxcf_refresh_meta_data#:#Meta-Daten aktualisieren
+type_availability#:#Verfügbarkeit
+type_availability_info#:#Hiermit steuern Sie die Verfügbarkeit des Typs im Magazin. Alte Typen können statt gelöscht auf "Bestehende erlaubt" gesetzt werden.
+type_created#:#Die Typdefinition wurde gespeichert.
+type_definition#:#XML-Definition
+type_definition_info#:#Geben Sie hier die XML-Definition der Schnittstelle ein. Erzeugen Sie einen neuen Typ, um ein Beispiel für die Definition zu sehen.
+type_deleted#:#Die Typdefinition wurde gelöscht.
+type_failure_encoding#:#Das encoding "%s" gibt es nicht!
+type_failure_field_name#:#Jedes Feld muss einen Namen haben!
+type_failure_field_type#:#Den field_type "%s" gibt es nicht!
+type_failure_input#:#Einige Eingaben sind nicht korrekt! Bitte beachten Sie die Hinweise bei den Feldern.
+type_failure_interfaces#:#Es muss genau ein Wurzelelement &lt;interface&gt; vorhanden sein.
+type_failure_launch_type#:#Den type "%s" gibt es nicht!
+type_remarks#:#Bemerkungen
+type_remarks_info#:#Administrative Bemerkungen zu Version und Status des Typs. Sie sind für die Anwender nicht sichtbar.
+type_saved#:#Die Typdefinition wurde gespeichert.
+type_updated#:#Die Typdefinition wurde aktualisiert.
+types_list#:#Liste der LRS-Typen
+untrashed_usages#:#Anzahl Verwendungen
+xxcf_edit#:#bearbeiten xAPI-Objekt 
+xapi_plugin_configuration#:#xAPI Plugin-Konfiguration
+xxcf_demo#:#DEMO
+type_title#:#Titel
+type_desc1#:#Dies ist ein Demo-Typ, um die Verwendung der Eingabefelder und Templates zu demonstrieren
+type_desc2#:#Beschreibungstext eingeben
+view#:#Ansehen
+type_time_to_delete#:#Ablauf-Zeit
+type_time_to_delete_info#:#Ablauf-Zeit für einen Zugriffs-Token (bei Callback-Authentifizierung)
+instructions#:#Anleitung
+online_info#:#Schalten Sie den Content online, damit er für Lernerinnen sichtbar und verwendbar wird.
+view_log#:#Log ansehen
+view_statistics#:#Statistik ansehen
+type#:#Event-Typ
+subtype#:#Untertyp
+integer#:#Zahl
+text#:#Text
+calculate#:#Berechnen
+export_excel#:#Excel-Export
+key_title#:#Schlüssel
+export#:#Export
+filter#:#Ereignisse filtern
+apply_filter#:#Filter anwenden
+filter_user#:#Nutzer-Filter
+filter_course#:#Kurs-Filter
+event_id#:#Ereignis-ID
+statistics_base_data#:#Grunddaten
+log_entries#:#Log-Einträge
+users_success#:#Erfolg bei der Schlüsselnutzung
+key_starts#:#Schlüssel-Starts
+key_results#:#Ergebnisse
+key_correct#:#Vermutlich korrekte Ergebnisse
+key_wrong#:#Vermutlich falsche Ergebnisse
+time#:#Log-Zeit
+time_parameters#:#Zeitparameter
+time_select_question#:#Zeit zur Auswahl einer Frage
+time_answer_question#:#Zeit zur Beantwortung einer Frage
+time_identify#:#Zeit zur erfolgreichen bestimmung einer Art
+time_failed#:#Zeit für eine fehlgeschlagene Identifikation
+ranking_questions#:#Rangfolge der Fragen
+most_selected_questions#:#Am häufigsten ausgewählte Fragen
+most_edited_questions#:#Am häufigsten geänderte Fragen
+no_events_found#:#Keine geloggten Ereignisse gefunden!
+no_statistics_calculated#:#Die Statistik wurde noch nicht berechnet!
+time_calculated#:#Erstellungszeit
+export_to_database#:#In Datenbank exportieren
+view_database#:#Datenbank ansenen
+database_content#:#Datenbankinhalt
+eval_id#:#Eval-ID
+key_id#:#Schlüssel-ID
+lms_id#:#LMS-ID
+key#:#Schlüssel
+any#:#beliebig
+user#:#Nutzer
+delete#:#Log-Eintrag löschen
+view_log#:#Log ansehen
+view_logs#:#Logs ansehen
+events_deleted#:#Der ausgewählte Nutzer wurde gelöscht
+less_date#:#Ereignisse vor: 
+more_date#:#Ereignisse nach: 
+type_obj#:#Objekt-Typ
+ref_id#:#Typ-ID
+session_id#:#Sitzung
+call_time#:#Aufruf-Zeit
+edit#:#Einstellungen
+log_set#:#Logging verwenden
+log_on#:#Ja
+log_off#:#Nein
+logs_info#:#Wählen Sie Sie "Ja", wenn Sie Logging-Daten vom xAPI-Objekt speichern möchten
+learning_progress_set#:#Lernfortschritt verwenden
+lp_on#:#Ja
+lp_off#:#Nein
+lp_info#:#Wählen Sie "Ja" wenn Sie Lernfortschrittsdaten vom xAPI-Objekt erhalten möchten
+time_to_delete_info#:#Lösch-Zeitraum für einen Zugriffs-Token (bei Logging)
+type_edit#:#Typ-Definition bearbeiten
+type_failure_encoding#:#Das Encoding %s wurde nicht gefunden!
+model#:#Typ-Modell
+content_types#:#LRS-Typen
+type_title_info#:#Dieser Titel wird zur Auswahl des Typs bei neuen Objekten angezeigt.
+type_description_info#:#Diese Beschreibung wird zur Auswahl des Typs bei neuen Objekten angezeigt.
+type_settings#:#Einstellungen
+icons#:#Icons
+icons_failure#:#Beim Hochladen der Icons ist ein Fehler aufgetreten!
+icons_saved#:#Die Icons wurden gespeichert.
+edit_instructions#:#Anleitung bearbeiten
+instructions_saved#:#Die Anleitung wurde gespeichert.
+title_info#:#Geben Sie dem Objekt einen Titel
+settings#:#Einstellungen
+lp_settings#:#Lernfortschritts-Einstellungen
+lp_mode#:#Modus
+lp_inactive#:#Lernfortschritt ist deaktiviert.
+lp_inactive_info#:#Für dieses Objekt wird kein Lernfortschritt gespeichert.
+lp_active#:#Aktiv
+lp_active_info#:#Der Status "In Bearbeitung" wird gesetzt, sobald der Inhalt aufgerufen wird.
+lp_threshold#:#Schwellenwert für "Bearbeitet"
+lp_threshold_info#:#Falls das übertragene Ergebnis gleich oder höher als diser Schwellenwert ist, wird der Status auf "Bearbeitet" gesetzt, andernfalls auf "Nicht bestanden".
+xxcf_read_learning_progress#:#Lernforschritt ansehen
+xxcf_edit_learning_progress#:#Lernfortschritt bearbeiten
+svg_icon#:#SVG-Icon für alle Größen
+big_icon#:#Großes Icon
+standard_icon#:#Standard-Icon
+tiny_icon#:#Kleines Icon
+conf_type_name#:#Interner Typname
+info_type_name#:#Interner Typname zur Sortierung und besseren Unterscheidung von Organisationen, Klienten und ggf. Versionen. Der Typname wird Benutzern nicht angezeigt.
+conf_title#:#Titel
+info_title#:#Dieser Titel wird zur Auswahl des Typs bei neuen Objekten angezeigt.
+conf_description#:#Beschreibung
+info_description#:#Diese Beschreibung wird zur Auswahl des Typs bei neuen Objekten angezeigt.
+conf_availability#:#Verfügbarkeit
+info_availability#:#Hiermit steuern Sie die Verfügbarkeit des LRS-Typs im Magazin. Alte Typen können statt gelöscht auf "Bestehende erlaubt" gesetzt werden.
+conf_availability_0#:#Nicht verfügbar
+conf_availability_1#:#Bestehende erlaubt
+conf_availability_2#:#Neue erzeugbar
+conf_log_level#:#ILIAS-Log-Einträge
+info_log_level#:#Voreinstellung: Keine Aufzeichnung. Ändern Sie aus Gründen der Performanz die Voreinstellung nur in begründeten Ausnahmefällen (z.B. Fehlersuche).
+conf_log_level_0#:#keine Aufzeichnung
+conf_log_level_1#:#Fehler und Warnungen
+conf_log_level_2#:#Alles für ILIAS relevante
+conf_lrs_type_id#:#Name des LRS-Typ
+info_lrs_type_id#:#Aktuell wird nur Learning Locker unterstützt.
+conf_lrs_type_id_0#:#Learning Locker Version 2
+conf_lrs_endpoint_1#:#Endpoint 1
+conf_lrs_endpoint_2#:#Endpoint 2
+info_lrs_endpoint#:#URL des Endpoints ohne '/' am Ende
+conf_lrs_key_1#:#Schlüssel / Login für Endpoint 1
+conf_lrs_key_2#:#Schlüssel / Login für Endpoint 2
+info_lrs_key#:#Schlüssel bzw. Login für den Zugriff, z.B. 12345
+conf_lrs_secret_1#:#Geheimnis / Password für Endpoint 1
+conf_lrs_secret_2#:#Geheimnis / Password für Endpoint 2
+info_lrs_secret#:#Geteiltes Geheimnis / Password, z.B. secret
+conf_endpoint_use#:#Endpoint Zuweisung
+conf_endpoint_use_1only#:#Nur Endpoint 1 zuweisen
+conf_endpoint_use_2only#:#Nur Endpoint 2 zuweisen
+conf_endpoint_use_1default_2fallback#:#Endpoint 1 als Standard und Endpoint 2 als Fallback zuweisen
+conf_endpoint_use_1fallback_2default#:#Endpoint 1 als Fallback und Endpoint 2 als Standard zuweisen
+info_endpoint_use#:#Endpoint 2/Fallback kann nur mit vollständigen Angaben zu Endpoint 2 (URL, Schlüssel und Secret) genutzt werden.
+conf_external_lrs#:#Externer LRS
+info_external_lrs#:#Bei einem externen LRS wird ein Hinweis an die Benutzer angezeigt. Ein externer LRS ist dadurch gegennzeichnet, dass der Betreiber dieser ILIAS-Installation unzureichenden Einfluss auf den LRS hat. Dies trifft dann zu, wenn keine Rechte zum Löschen vorliegen.
+conf_privacy_ident#:#Benutzerkennung (Voreinstellung)
+info_privacy_ident#:#Standard ist oftmals die E-Mail-Adresse.
+conf_privacy_ident_0#:#Kombination aus User-Id, URL und Mandant
+info_privacy_ident_0#:#Dieser ist mit jedem Aufruf identisch, erlaubt aber keinen direkten Rückschluss auf den ursprünglichen Nutzer.
+conf_privacy_ident_1#:#Nutzer-ID
+info_privacy_ident_1#:#Sendet die intere numerische Nutzer-ID als Kennung
+conf_privacy_ident_2#:#Login
+info_privacy_ident_2#:#Sendet den ILIAS-Loginnamen als Kennung
+conf_privacy_ident_3#:#E-Mail-Adresse
+info_privacy_ident_3#:#Sendet die E-Mail-Adresse des Nutzers als Kennung (Achtung: Eine E-Mail-Adresse darf nicht von mehreren Nutzern genutzt werden!)
+conf_privacy_ident_4#:#Zuf&auml;llige Zeichenkette
+info_privacy_ident_4#:#Erzeugt und sendet eine zuf&auml;llige Zeichenkette als Kennung
+conf_privacy_name#:#Benutzername (Voreinstellung)
+info_privacy_name#:#Das Senden eines Benutzernamens ist in der Regel nicht erforderlich.
+conf_privacy_name_0#:#Keiner
+info_privacy_name_0#:#Sendet '-' statt eines Namens
+conf_privacy_name_1#:#Vorname
+info_privacy_name_1#:#Sendet den Benutzer-Vorname aus ILIAS
+conf_privacy_name_2#:#Anrede und Nachname
+info_privacy_name_2#:#Sendet Herr bzw. Frau (sofern angegeben) und den Nachnamen
+conf_privacy_name_3#:#Voller Name
+info_privacy_name_3#:#Sendet Titel, Vor- und Nachname
+conf_privacy_comment_default#:#Hinweis an Benutzer
+info_privacy_comment_default#:#Geben Sie hier bei Bedarf einen zusätzlichen Hinweis zum Datenschutz bei Nutzung dieses LRS ein.
+conf_remarks#:#Interne Anmerkungen
+info_remarks#:#Notieren Sie hier Ihre Anmerkungen zu diesem LRS-Typ.
+launch_options#:#Optionen für den Start
+launch_url#:#URL der Ressource
+launch_url_info#:#Geben Sie hier die Internet-Adresse mit Angabe von http:// bzw. https:// an.
+activity_id#:#Activity-ID
+activity_id_info#:#Diese ID wird in erster Linie für die Anzeige von Daten aus dem LRS benötigt. Diese ID erhaten Sie vom Anbieter der Ressource. Sie können aber auch eine selbst definierte ID verwenden. Bitte achten Sie in diesem Fall auf Eindeutigkeit.<br />Beispiel: http(s)://www.example.com/expapi/activity/anyidentifier
+activity_id_validation_failure#:#Diese Activity ID ist ungültig. Die Activity ID muss dem Format eines IRI entsprechen.
+use_fetch#:#Authorisierung über Fetch-URL
+use_fetch_info#:#Sofern die Ressource diese Option unterstützt, sollten Sie diese Option zur Erhöhung der Datensicherheit nutzen. 
+privacy_options#:#Optionen für den Datenschutz
+content_privacy_ident#:#Benutzerkennung für die Ressource
+content_privacy_name#:#Benutzername für die Ressource
+log_options#:#Optionen für die Anzeige übermittelter Daten
+show_debug#:#Statement-Anzeige
+show_debug_no#:#keine Anzeige
+show_debug_setting#:#Anzeige nur für Benutzer mit dem Recht 'Einstellungen bearbeiten'
+show_debug_lp#:#Anzeige nur für Benutzer mit dem Recht 'Lernfortschritt anderer Benutzer einsehen'
+show_debug_all#:#Anzeige für alle
+show_debug_info#:#Je nach Einstellung des LRS können auch Daten weiterer Nutzer angezeigt werden!
+lp_completed#:#Bearbeitet wenn vollständig bearbeitet
+lp_completed_info#:#Der ILIAS-Lernstatus wechselt zu 'bearbeitet' wenn die Ressource 'completed' sendet.
+lp_passed#:#Bearbeitet wenn bestanden
+lp_passed_info#:#Der ILIAS-Lernstatus wechselt zu 'bearbeitet' wenn die Ressource 'passed' sendet.
+lp_completed_and_passed#:#Bearbeitet wenn bestanden und vollständig bearbeitet
+lp_completed_and_passed_info#:#Der ILIAS-Lernstatus wechselt zu 'bearbeitet' wenn die Ressource 'passed' und 'completed' sendet.
+lp_completed_or_passed#:#Bearbeitet wenn bestanden oder vollständig bearbeitet
+lp_completed_or_passed_info#:#Der ILIAS-Lernstatus wechselt zu 'bearbeitet' wenn die Ressource 'passed' oder 'completed' sendet.
+lp_mastery_score#:#Bearbeitet wenn Mindestpunktestand erreicht
+lp_mastery_score_info#:#Der ILIAS-Lernstatus wechselt zu 'bearbeitet' wenn die Ressource einen Punktestand sendet, der den hier anzugebenden Mindestpunktestand erreicht.
+lp_fix_condition#:#'bearbeitet' einfrieren
+lp_fix_condition_info#:#Ist der ILIAS-Lernstatus 'bearbeitet' erreicht, bleibt er erhalten.
+type_name_not_available#:#Objekt konnte nicht angelegt werden. LRS-Typ mit dem Namen '%s' ist nicht vorhanden. Bitte kontaktieren Sie Ihren Administrator.
+type_not_set#:#LRS-Typ fehlt.
+objs_xxcf_duplicate#:#Kopieren.
+obj_xxcf_duplicate#:#Kopieren.
+no_type_available_for_create#:#Kein LRS-Typ erlaubt aktuell das Hinzufügen dieses Objekts.
+open_mode_iframe#:#Ressource ist eingebettet
+open_mode_iframe_info#:#Die Ressource wird statt in einem neuen Fenster in einem iframe in ILIAS angezeigt. Bitte beachten Sie, dass nicht alle Ressourcen es gestatten, in einem iframe angezeigt zu werden.
+title_data_reduction#:#Optionen zur Datenreduktion
+only_moveon_label#:#Nur Daten zum Lernerfolg speichern
+only_moveon_info#:#Mit dieser nur für den ILIAS-LRS-Proxy zur Verfügung stehenden Option werden nur Statements mit definierten Verben im Learning Record Store gespeichert (WhiteList). Dem Content wird mitgeteilt, dass die Statements gespeichert worden wären. Das sichert in der Regel die Ablauffähigkeit, sollte jedoch mit dem Content-Anbieter abgesprochen sein.
+achieved_label#:#Statements mit dem Verb 'achieved'
+achieved_info#:#Erfolgreich ein gewünschtes Ziel, Niveau oder Ergebnis durch Anstrengung, Geschicklichkeit oder Mut herbeiführen oder erreichen.
+answered_label#:#Statements mit dem Verb 'answered'
+answered_info#:#Auf eine Frage wurde geantwortet - wobei das Objekt im Allgemeinen eine Aktivität ist, die die Frage repräsentiert. Der Text der Antwort ist oft in der Antwort innerhalb des Ergebnisses enthalten.
+completed_label#:#Statements mit dem Verb 'completed'
+completed_info#:#Die Aktivität wurde normal beendet oder abgeschlossen.
+failed_label#:#Statements mit dem Verb 'failed'
+failed_info#:#Die Aktivität wurde nicht erfolgreich bestanden bis zu einem vorher festgelegten Grad an Zufriedenheit.
+initialized_label#:#Statements mit dem Verb 'initialized'
+initialized_info#:#Die Aktivität wurde erfolgreich begonnen.
+passed_label#:#Statements mit dem Verb 'passed'
+passed_info#:#Die Aktivität wurde bis zu einem vorher festgelegten Grad der Zufriedenheit erfolgreich bestanden.
+progressed_label#:#Statements mit dem Verb 'progressed'
+progressed_info#:#Bezeichnet einen Wert, der angibt, wie weit ein Akteur in einer Aktivität fortgeschritten ist oder sich durch eine Aktivität bewegt hat.
+satisfied_label#:#Statements mit dem Verb 'satisfied'
+satisfied_info#:#Zeigt an, dass die Kriterien des Objekts oder der Aktivität erfüllt wurden.
+terminated_label#:#Statements mit dem Verb 'terminated'
+terminated_info#:#Die Aktivität wurde erfolgreich beendet.
+hide_data_label#:#Daten schwärzen
+hide_data_info#:#Mit dieser nur für den ILIAS-LRS-Proxy zur Verfügung stehenden Option werden bestimmte Daten in Statements mit unkenntlich gemachten Werten im Learning Record Store gespeichert.
+timestamp_label#:#Zeitstempel 'timestamp'
+timestamp_info#:#Der timestamp kennzeichnet den Zeitpunkt einer durch das Statement gekennzeichneten Aktion. Der timestamp wird durch diese Option auf den Standardwert 01.01.1970 (1970-01-01T00:00:00.000Z) gesetzt. Bitte beachten Sie, dass ein Learning Record Store gegebenenfalls selbständig einen Wert für das Speicherdatum (stored) setzt, der mit dem timestamp nahezu identisch sein kann.
+duration_label#:#Zeitdauer 'duration'
+duration_info#:#Die Zeitdauer kann z.B. für die Beantwortung einer Aufgabe erfasst werden. Die Zeitdauer 'duration' wird durch diese Option auf den Standardwert 0 Sekunden (PT00.000S) gesetzt.
+no_substatements_label#:#Substatements nicht speichern
+no_substatements_info#:#Mit dieser Option, die nur für den ILIAS LRS-Proxy zur Verfügung steht, kann die Speicherung von untergeordneten Statements unterdrückt werden. Dies kann z.B. die Beantwortung einzelner Aufgaben in einem Test beeinflussen. Dem Content wird mitgeteilt, dass die Statements gespeichert worden wären.
+
+

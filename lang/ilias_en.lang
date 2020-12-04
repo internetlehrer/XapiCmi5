@@ -1,0 +1,284 @@
+//
+// Copyright (c) 2018 internetlehrer GmbH
+// GPLv2, see LICENSE 
+// 
+// English Language File for xAPI Plugin
+//
+
+<!-- language file start -->
+cat_create_xxcf#:#Create new xAPI-Object
+crs_create_xxcf#:#Create new xAPI-Object
+xxcf#:#xAPI-Object
+xxcf_add#:#Add xAPI-Object
+xxcf_copy#:#Copy xAPI-Object
+xxcf_created#:#The xAPI-Object has been added
+xxcf_delete#:#Delete xAPI-Object
+xxcf_edit_permission#:#Edit Permissions
+xxcf_new#:#New xAPI-Object
+xxcf_read#:#Use xAPI-Object
+xxcf_visible#:#xAPI-Object is visible
+xxcf_write#:#Configure xAPI-Object
+fold_create_xxcf#:#Create new xAPI-Object
+grp_create_xxcf#:#Create new xAPI-Object
+obj_xxcf#:#xAPI-Object
+objs_xxcf#:#xAPI-Object
+xxcf_apply#:#Apply
+xxcf_availability#:#Availability
+xxcf_configuration#:#Configuration of xAPI-Object types
+create_type#:#Define a New Type
+delete_type#:#Delete the type definition
+xxcf_description_info#:#The description will be shown below the title
+xxcf_edit_type#:#Edit type definition
+instructions#:#Instruction
+xxcf_instructions_info#:#The instruction will be shown on the info page
+xxcf_message_type_not_available#:#xAPI-Objects of this type are not longer available.
+xxcf_online_info#:#This makes the object visible and usable for the users
+xxcf_refresh_meta_data#:#update meta data
+type_availability#:#Availability
+type_availability_info#:#Availability of this type in the repository. You may set deprecated types to "allow existing" instead of deleting them.
+type_created#:#the type definition is saved.
+type_definition#:#XML Definition
+type_definition_info#:#Add the XML definition here. Create a new type to see an example.
+type_deleted#:#The type definition is deleted
+type_failure_encoding#:#The encoding "%s" does not exist!
+type_failure_field_name#:#Each field must have a name!
+type_failure_field_type#:#The field_type "%s" does not exist!
+type_failure_input#:#Some inputs are not correct! Please note the alerts at the fields.
+type_failure_interfaces#:#You should declare exactly one root element &lt;interface&gt;.
+type_failure_launch_type#:#the type "%s" does not exist!
+type_remarks#:#Remarks
+type_remarks_info#:#Administrative remarks for this type. They will not be shown to the users.
+type_saved#:#The type definition is saved.
+type_updated#:#The type definition is updated.
+types_list#:#List of xAPI-Object types
+untrashed_usages#:#Number of usages
+xxcf_edit#:#Edit xAPI-Object
+xapi_plugin_configuration#:#Configuration of the xAPI Plugin
+type_name_not_available#:#Object could not be created. LRS-type with the name '%s' does not exist. Please contact your administrator.
+xxcf_demo#:#DEMO
+type_title#:#Title
+type_desc1#:#This is a demo type to demonstrate the use of input fields and templates
+type_desc2#:#Enter description text
+view#:#View
+type_time_to_delete#:#Time to expire
+type_time_to_delete_info#:#Expire time of an access token (for callback authentication)
+instructions#:#Instructions
+online_info#:#Switch the content online to get it visible for the learners
+view_log#:#View Log
+view_statistics#:#View Statistics
+type#:#Type
+subtype#:#Sub type
+integer#:#Number
+text#:#Text
+calculate#:#Calculate
+export_excel#:#Excel Export
+key_title#:#Key
+export#:#Export
+filter#:#Filter events
+apply_filter#:#Apply filter
+filter_user#:#Filter by User
+filter_course#:#Filter Course
+event_id#:#Event Id
+statistics_base_data#:#Statistics base data
+log_entries#:#Log entries
+users_success#:#Users success using the key
+key_starts#:#Key starts
+key_results#:#Results
+key_correct#:#Results assumed correct
+key_wrong#:#Results assumed wrong
+time#:#Log Time
+time_parameters#:#Time parameters
+time_select_question#:#Time to select question
+time_answer_question#:#Time to answer a question
+time_identify#:#Time to successfully identify a species
+time_failed#:#Time for failed identification process
+ranking_questions#:#Ranking of questions
+most_selected_questions#:#Most selected questions
+most_edited_questions#:#Most edited questions
+no_events_found#:#No logged events found!
+no_statistics_calculated#:#No statistics calculated!
+time_calculated#:#Time calculated
+export_to_database#:#Export to Database
+view_database#:#view Database
+database_content#:#Database Content
+eval_id#:#Eval ID
+key_id#:#Key ID
+lms_id#:#LMS ID
+key#:#key
+any#:#any
+user#:#User
+delete#:#Delete log entry
+view_log#:#View log
+view_logs#:#View logs
+events_deleted#:#The selected events have been deleted
+less_date#:#Events occurred before: 
+more_date#:#Events occurred after: 
+type_obj#:#Type of object
+ref_id#:#Type ID
+session_id#:#Session
+call_time#:#Call time
+edit#:#Edit xAPI-Object
+log_set#:#Use logs
+log_on#:#Yes
+log_off#:#No
+logs_info#:#Choose if you want to use logs to store data received from the xAPI-Object for this type of object.
+learning_progress_set#:#Use learning progress
+lp_on#:#Yes
+lp_off#:#No
+lp_info#:#Choose if you want to store the information received from this xAPI-Object with the learning progress tool of ILIAS.
+time_to_delete_info#:#Delete time of an access token (for logging)
+type_edit#:#Edit type definition
+type_failure_encoding#:#Customizing/global/encodings/%s not found!
+model#:#Type model
+content_types#:#LRS Types
+type_title_info#:#This title is shown when a type is selected for a new object.
+type_description_info#:#This description is shown when a type is selected for a new object.
+type_settings#:#Settings
+icons#:#Icons
+icons_failure#:#The icons were not properly uploaded!
+icons_saved#:#The icons were successfully saved.
+edit_instructions#:#Edit Instructions
+instructions_saved#:#The Instructions were saved.
+title_info#:#Give the object a title
+settings#:#Settings
+lp_settings#:#Learning Progress Settings
+lp_mode#:#Modus
+lp_inactive#:#The learning progress is deactivated.
+lp_inactive_info#:#The learning progress is not stored for this object.
+lp_active#:#Active
+lp_active_info#:#The 'In Progress' status is set when the content is viewed.
+lp_threshold#:#Passing Threshold
+lp_threshold_info#:#If a transmitted outcome is equal or higher than this threshold, then the status is set to 'Completed', otherwise to 'Failed'.
+xxcf_read_learning_progress#:#View Learning Progress
+xxcf_edit_learning_progress#:#Edit Learning Progress
+svg_icon#:#SVG Icon for All Sizes
+big_icon#:#Big Icon
+standard_icon#:#Standard Icon
+tiny_icon#:#Tiny Icon
+conf_type_name#:#Internal type name
+info_type_name#:#Internal type name to better sort and differentiate between organizations, clients and if necessary, versions. The type name will not be shown to users. 
+conf_title#:#Title
+info_title#:#This title will be shown when choosing the type for new objects.
+conf_description#:#Description
+info_description#:#This description will be shown when choosing the type for new objects.
+conf_availability#:#Availability
+info_availability#:#Hereby you can operate the availability of the LRS-type within the magazine. All types can set on "allow existing ones" instead of being deleted. 
+conf_availability_0#:#Not available
+conf_availability_1#:#Existing ones allowed
+conf_availability_2#:#New producible
+conf_log_level#:#ILIAS-Log-entries
+info_log_level#:#Default setting: No recording. Change default setting for performance reasons only in justified exceptional cases (i.e. error search).
+conf_log_level_0#:#No recording
+conf_log_level_1#:#Errors and warnings
+conf_log_level_2#:#Everything relevant to IIAS 
+conf_lrs_type_id#:#Name of the LRS-type
+info_lrs_type_id#:#Only Learning Locker is currently supported. 
+conf_lrs_type_id_0#:#Learning Locker Version 2
+conf_lrs_endpoint_1#:#Endpoint 1
+conf_lrs_endpoint_2#:#Endpoint 2
+info_lrs_endpoint#:#URL of the endpoint without '/' at the end
+conf_lrs_key_1#:#Key / Login for Endpoint 1
+conf_lrs_key_2#:#Key / Login for Endpoint 2
+info_lrs_key#:#Key or login for access, i.e. 12345
+conf_lrs_secret_1#:#Secret / Password for Endpoint 1
+conf_lrs_secret_2#:#Secret / Password for Endpoint 2
+info_lrs_secret#:#Shared secret / Password, i.e. secret
+conf_endpoint_use#:#Endpoint use
+conf_endpoint_use_1only#:#Use Endpoint 1 only
+conf_endpoint_use_2only#:#Use Endpoint 2 only
+conf_endpoint_use_1default_2fallback#:#Use Endpoint 1 as Default and Endpoint 2 as Fallback
+conf_endpoint_use_1fallback_2default#:#Use Endpoint 1 as Fallback and Endpoint 2 as Default
+info_endpoint_use#:#Endpoint 2/Fallback can only be used with full Endpoint 2 information (URL, key and secret).
+conf_external_lrs#:#External LRS
+info_external_lrs#:#A hint will be shown to users when dealing with an external LRS. An external LRS is characterized by insufficient influence on the LRS the by the operator of the ILIAS-installation. This is the case when there are no rights to delete. 
+conf_privacy_ident#:#User identification (Default)
+info_privacy_ident#:#Standard is frequently the email address.
+conf_privacy_ident_0#:#Combination of user-id, URL and client
+info_privacy_ident_0#:#Send code. This is identical to each call, but doesn't allow a direct conclusion about the former user. 
+conf_privacy_ident_1#:#User-Id
+info_privacy_ident_1#:#Sends the internal numerical user-ID as identification
+conf_privacy_ident_2#:#Login
+info_privacy_ident_2#:#Sends the internal numerical user-ID as identification
+conf_privacy_ident_3#:#E-Mail Address
+info_privacy_ident_3#:#Sends E-Mail Address of user as identification (Warning: an E-Mail Address is not to be used by multiple users!)
+conf_privacy_ident_4#:#Random String
+info_privacy_ident_4#:#Generate and sends a random string as identification
+conf_privacy_name#:#User name (Default)
+info_privacy_name#:#Sending an user name is usually not required.
+conf_privacy_name_0#:#No one
+info_privacy_name_0#:#Sends '-' instead of a name 
+conf_privacy_name_1#:#First name
+info_privacy_name_1#:#Sends the first name of the user name from ILIAS 
+conf_privacy_name_2#:#Title and last name
+info_privacy_name_2#:#Sends Mister or Ms/Mrs. (unless otherwise specified) and the last name 
+conf_privacy_name_3#:#Entire name
+info_privacy_name_3#:#Sends title, first name and last name
+conf_privacy_comment_default#:#Indication to user
+info_privacy_comment_default#:#Please insert, if required, an additional indication on data security when using this LRS.
+conf_remarks#:#Internal comments
+info_remarks#:#Place to write down your comments on this LRS-type here. 
+launch_options#:#options for start
+launch_url#:#URL of the resource
+launch_url_info#:#Insert here the Internet address by adding http:// or https:// .
+activity_id#:#Activity-ID
+activity_id_info#:#This ID is primarily used for the display of data from the LRS. You receive this ID from the resource provider. You can also choose for an own defined ID, please take care of an uniquness in this case.<br />Example: http(s)://www.example.com/expapi/activity/anyidentifier
+activity_id_validation_failure#:#This Activity ID is invalid. The Activity ID needs to be a qualified IRI.
+use_fetch#:#Authorization through Fetch-URL
+use_fetch_info#:#As long as the resource supports this option, you should use this option to increase data security.  
+privacy_options#:#Options for data security
+content_privacy_ident#:#User identification for resource
+content_privacy_name#:#User name for resource
+log_options#:#Options for the display of transmitted data
+show_debug#:#Statement-display
+show_debug_no#:#no display
+show_debug_setting#:#Display only for users maintaining the right of 'edit settings'
+show_debug_lp#:#Display only for users maintaining the right of 'looking at the learning progress of other users'
+show_debug_all#:#Display for all
+show_debug_info#:#Depending on the settings of the LRS data of other users can also be displayed! 
+lp_completed#:#Edited when fully edited 
+lp_completed_info#:#The ILIAS Learning status switches to 'edited' as soon as the resource sends 'completed'.
+lp_passed#:#Edited when passed 
+lp_passed_info#:#The ILIAS Learning status switches to 'edited' as soon as the resource sends 'passed'.
+lp_completed_and_passed#:#Edited when passed and fully edited 
+lp_completed_and_passed_info#:#The ILIAS Learning status switches to 'edited' as soon as the resource sends 'passed' and 'completed'.
+lp_completed_or_passed#:#Edited when passed and fully edited 
+lp_completed_or_passed_info#:#The ILIAS learning status switches to 'edited' as soon as the resource sends 'passed' or 'completed'.
+lp_mastery_score#:#Edited when minimum score is achieved 
+lp_mastery_score_info#:#The ILIAS learning status switches to 'edited' as soon as the resource sends a score that achieves the minimum score recorded here. 
+lp_fix_condition#:#'edited' suspended
+lp_fix_condition_info#:#Once the ILIAS Learning status 'edited' is achieved, it remains.
+type_not_set#:#LRS-type is missing.
+objs_xxcf_duplicate#:#Copy
+obj_xxcf_duplicate#:#Copy
+no_type_available_for_create#:#No LRS-type is available to create such an object.
+open_mode_iframe#:#Resource is embedded
+open_mode_iframe_info#:#The resource is displayed in an iframe in ILIAS instead of in a new window. Please note that not all resources allow to be displayed in an iframe.
+title_data_reduction#:#Options for data reduction
+only_moveon_label#:#Save learning success data only
+only_moveon_info#:#With this option, which is only available for the ILIAS LRS proxy, only statements with defined verbs are stored in the Learning Record Store (WhiteList). The content is informed that the statements would have been saved. This usually ensures the expiration date but should be discussed with the content provider.
+achieved_label#:#Statements with the verb 'achieved'
+achieved_info#:#Successfully bring about or reach a desired objective, level, or result by effort, skill, or courage.
+answered_label#:#Statements with the verb 'answered'
+answered_info#:#Indicates the actor replied to a question, where the object is generally an activity representing the question. The text of the answer will often be included in the response inside result.
+completed_label#:#Statements with the verb 'completed'
+completed_info#:#Indicates the actor finished or concluded the activity normally.
+failed_label#:#Statements with the verb 'failed'
+failed_info#:#Indicates the actor did not successfully pass an activity to a level of predetermined satisfaction.
+initialized_label#:#Statements with the verb 'initialized'
+initialized_info#:#Indicates the activity provider has determined that the actor successfully started an activity.
+passed_label#:#Statements with the verb 'passed'
+passed_info#:#Indicates the actor successfully passed an activity to a level of predetermined satisfaction.
+progressed_label#:#Statements with the verb 'progressed'
+progressed_info#:#Indicates a value of how much of an actor has advanced or moved through an activity.
+satisfied_label#:#Statements with the verb 'satisfied'
+satisfied_info#:#Indicates that the authority or activity provider determined the actor has fulfilled the criteria of the object or activity.
+terminated_label#:#Statements with the verb 'terminated'
+terminated_info#:#Indicates that the actor successfully ended an activity.
+hide_data_label#:#Blacken data
+hide_data_info#:#With this option which is only available for the ILIAS LRS proxy certain data is stored in statements with unrecognizable values in the Learning Record Store.
+timestamp_label#:#Timestamp
+timestamp_info#:#The timestamp marks the time of an action indicated by the statement. The timestamp is set to the default value 01.01.1970 (1970-01-01T00:00:00.000Z) by this option. Please note that a Learning Record Store may automatically set a value for the stored date, which can be almost identical to the timestamp.
+duration_label#:#Duration
+duration_info#:#The duration can be entered e.g. for answering a task. The duration is set to the default value 0 seconds (PT00.000S) by this option.
+no_substatements_label#:#Do not store substatements
+no_substatements_info#:#With this option - which is only available for the ILIAS LRS proxy - the storage of subordinate statements can be suppressed. This can for example affect the answering of single tasks in a test. The content is informed that the statements would have been saved.

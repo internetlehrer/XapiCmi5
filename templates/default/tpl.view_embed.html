@@ -1,0 +1,63 @@
+<script type="text/javascript" src="./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/templates/default/base64.js"></script>
+
+<input id="startXapiObject" class="btn btn-default btn-sm" type="button" onclick="launchxapi()" value="Start" /><br/>
+<iframe name="basicXAPILaunchFrame"  id="basicXAPILaunchFrame" src="" width="1" height="1" scrolling="auto" frameborder="0" transparency></iframe>
+
+<script type="text/javascript">
+function Config() {
+    "use strict";
+}
+Config.endpoint = '{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapi/xapiproxy.php';
+Config.actor = { "mbox":"{XAPI_USER_ID}", "name":"{XAPI_USER_NAME}" };
+Config.activityId = '{XAPI_ACTIVITY_ID}';
+Config.registration = '{XAPI_REGISTRATION}';
+
+var open_mode_iframe = {OPEN_MODE_IFRAME};
+
+function launchxapi() {
+<!-- BEGIN fetch -->
+	//var vlink = '&fetch=' + encodeURIComponent('{ILIAS_URL}/create_token.php');
+	var vlink = '&fetch=' + encodeURIComponent('{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/token.php?ref_id={REF_ID}&sess={SESSION}');
+<!-- END fetch -->
+<!-- BEGIN no_fetch -->
+	var auth = 'Basic ' + Base64.encode('{LAUNCH_KEY}' + ':' + '{LAUNCH_SECRET}');
+	var vlink = "&auth=" + encodeURIComponent(auth);
+<!-- END no_fetch -->
+
+    var link = '{LAUNCH_URL}' +
+            "?endpoint=" + encodeURIComponent(Config.endpoint) +
+            vlink +
+	        "&activityId=" + encodeURIComponent(Config.activityId) +
+            "&actor=" + encodeURIComponent(JSON.stringify(Config.actor)) +
+            "&activity_id=" + encodeURIComponent(Config.activityId);
+	console.log(link);
+	if (open_mode_iframe == 0) {
+		window.open(link, '_blank', 'width={WIN_LAUNCH_WIDTH},height={WIN_LAUNCH_HEIGHT}');
+	} else {
+		document.getElementById('startXapiObject').style.display='none';
+		document.getElementById('basicXAPILaunchFrame').width='{FRAME_LAUNCH_WIDTH}px';
+		document.getElementById('basicXAPILaunchFrame').height='{FRAME_LAUNCH_HEIGHT}px';
+		document.getElementById('basicXAPILaunchFrame').src = link;
+	}
+}
+
+if (open_mode_iframe == 1) {
+	launchxapi();
+}
+
+</script>
+
+<!-- BEGIN debug_embed -->
+<script type="text/javascript">
+function ConfigLRS() {
+    "use strict";
+}
+ConfigLRS.endpoint = '{LRS_ENDPOINT}';
+ConfigLRS.authUser = '{LRS_KEY}';
+ConfigLRS.authPassword = '{LRS_SECRET}';
+ConfigLRS.actor = { "mbox":"{LRS_USER_ID}", "name":"{LRS_USER_NAME}" }; 
+</script> 
+<iframe name="XAPIDebugFrame" id="XAPIDebugFrame" 
+	src="./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapi/StatementViewer/index.html" 
+	width="1000" height="600" scrolling="auto" frameborder="0" transparency></iframe>
+<!-- END debug_embed -->
