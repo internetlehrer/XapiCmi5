@@ -43,6 +43,20 @@ class ilXapiCmi5Exporter extends ilXmlExporter {
 		$writer->xmlElement("show_debug", null, $entity->getShowDebug());
 		$writer->xmlElement("lp_mode", null, $entity->getLPMode());
 		$writer->xmlElement("lp_threshold", null, $entity->getLPThreshold());
+		$writer->xmlElement("only_moveon", null, (int)$entity->getOnlyMoveon());
+		$writer->xmlElement("achieved", null, (int)$entity->getAchieved());
+		$writer->xmlElement("answered", null, (int)$entity->getAnswered());
+		$writer->xmlElement("completed", null, (int)$entity->getCompleted());
+		$writer->xmlElement("failed", null, (int)$entity->getFailed());
+		$writer->xmlElement("initialized", null, (int)$entity->getInitialized());
+		$writer->xmlElement("passed", null, (int)$entity->getPassed());
+		$writer->xmlElement("progressed", null, (int)$entity->getProgressed());
+		$writer->xmlElement("satisfied", null, (int)$entity->getSatisfied());
+		$writer->xmlElement("terminated", null, (int)$entity->getTerminated());
+		$writer->xmlElement("hide_data", null, (int)$entity->getHideData());
+		$writer->xmlElement("timestamp", null, (int)$entity->getTimestamp());
+		$writer->xmlElement("duration", null, (int)$entity->getDuration());
+		$writer->xmlElement("no_substatements", null, (int)$entity->getNoSubstatements());		
 		$writer->xmlEndTag("xxcf");
 
 		return $writer->xmlDumpMem(false);;

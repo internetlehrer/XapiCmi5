@@ -65,6 +65,20 @@ class ilXapiCmi5Importer extends ilXmlImporter {
 			$entity->setShowDebug((string) $xml->show_debug);
 			$entity->setLPMode((string) $xml->lp_mode);
 			$entity->setLPThreshold((string) $xml->lp_threshold);
+			$entity->setOnlyMoveon((int) $xml->only_moveon);
+			$entity->setAchieved((int) $xml->achieved);
+			$entity->setAnswered((int) $xml->answered);
+			$entity->setCompleted((int) $xml->completed);
+			$entity->setFailed((int) $xml->failed);
+			$entity->setInitialized((int) $xml->initialized);
+			$entity->setPassed((int) $xml->passed);
+			$entity->setProgressed((int) $xml->progressed);
+			$entity->setSatisfied((int) $xml->satisfied);
+			$entity->setTerminated((int) $xml->terminated);
+			$entity->setHideData((int) $xml->hide_data);
+			$entity->setTimestamp((int) $xml->timestamp);
+			$entity->setDuration((int) $xml->duration);
+			$entity->setNoSubstatements((int) $xml->no_substatements);			
 			$entity->update();
 			$a_mapping->addMapping("Plugins/XapiCmi5", "xxcf", $a_id, $entity->getId());
 		} catch (Exception $e) {

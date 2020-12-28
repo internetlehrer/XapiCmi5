@@ -31,7 +31,9 @@ xxcf_description_info#:#The description will be shown below the title
 xxcf_edit_type#:#Edit type definition
 instructions#:#Instruction
 xxcf_instructions_info#:#The instruction will be shown on the info page
-xxcf_message_type_not_available#:#xAPI-Objects of this type are not longer available.
+message_type_not_available#:#xAPI-Objects with this LRS-type are not longer available.
+message_not_available#:#This Object is not available.
+message_no_launch_url_specified#:#The URL of the resource was not set.
 xxcf_online_info#:#This makes the object visible and usable for the users
 xxcf_refresh_meta_data#:#update meta data
 type_availability#:#Availability
@@ -282,3 +284,11 @@ duration_label#:#Duration
 duration_info#:#The duration can be entered e.g. for answering a task. The duration is set to the default value 0 seconds (PT00.000S) by this option.
 no_substatements_label#:#Do not store substatements
 no_substatements_info#:#With this option - which is only available for the ILIAS LRS proxy - the storage of subordinate statements can be suppressed. This can for example affect the answering of single tasks in a test. The content is informed that the statements would have been saved.
+lrs_type#:#LRS-type
+lrs_authentication#:#Authentication
+conf_privacy_setting_conf#:#Configuration Options
+conf_privacy_setting_info#:#Configuration Options for Privacy Settings
+conf_privacy_setting_default#:#Default Settings, changeable for Objects
+conf_privacy_setting_force#:#Settings are not changeable for Objects
+no_change_default_privacy_settings#:#Using this LRS-type settings are not changeable
+hints#:#Hints

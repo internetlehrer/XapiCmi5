@@ -153,11 +153,9 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$form->setFormAction($ilCtrl->getFormAction($this));
 		$form->setTitle($this->txt('create_type'));
 		
-		include_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
-
 		$form = new ilPropertyFormGUI();
 		$form->setFormAction($ilCtrl->getFormAction($this));
-		$form->setTitle($lng->txt('settings'));
+		$form->setTitle($this->plugin_object->txt('lrs_type'));
 
 		$item = new ilTextInputGUI($this->plugin_object->txt('conf_type_name'), 'type_name');
 		$item->setValue($this->type->getName());
@@ -214,6 +212,10 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$item->setInfo($this->plugin_object->txt('info_lrs_type_id'));
 		$item->setRequired(false);
 		$form->addItem($item);
+
+        $sectionHeader = new ilFormSectionHeaderGUI();
+        $sectionHeader->setTitle($this->plugin_object->txt('lrs_authentication'));
+        $form->addItem($sectionHeader);
 
 		// Endpoint 1
 
@@ -277,13 +279,10 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$item->setRequired(false);
 		$form->addItem($item);
 
-		// ...
-
-		$item = new ilCheckboxInputGUI($this->getPluginObject()->txt('conf_external_lrs'), 'external_lrs');
-		$item->setValue($this->type->getExternalLrs());
-		$item->setInfo($this->plugin_object->txt('info_external_lrs'));
-		$form->addItem($item);
-		
+	    $sectionHeader = new ilFormSectionHeaderGUI();
+        $sectionHeader->setTitle($this->plugin_object->txt('privacy_options'));
+        $form->addItem($sectionHeader);
+	
 		$item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_privacy_ident'), 'privacy_ident');
 		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_ident_0'), 0);
 		$item->addOption($op);
@@ -315,6 +314,101 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$item->setRequired(false);
 		$form->addItem($item);
 
+		$sectionHeader = new ilFormSectionHeaderGUI();
+        $sectionHeader->setTitle($this->plugin_object->txt('title_data_reduction'));
+        $form->addItem($sectionHeader);
+	
+
+        $item = new ilCheckboxInputGUI($this->plugin_object->txt('only_moveon_label'), 'only_moveon');
+        $item->setInfo($this->plugin_object->txt('only_moveon_info'));
+        $item->setChecked($this->type->getOnlyMoveon());
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('achieved_label'), 'achieved');
+        $subitem->setInfo($this->plugin_object->txt('achieved_info'));
+        $subitem->setChecked($this->type->getAchieved());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('answered_label'), 'answered');
+        $subitem->setInfo($this->plugin_object->txt('answered_info'));
+        $subitem->setChecked($this->type->getAnswered());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('completed_label'), 'completed');
+        $subitem->setInfo($this->plugin_object->txt('completed_info'));
+        $subitem->setChecked($this->type->getCompleted());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('failed_label'), 'failed');
+        $subitem->setInfo($this->plugin_object->txt('failed_info'));
+        $subitem->setChecked($this->type->getFailed());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('initialized_label'), 'initialized');
+        $subitem->setInfo($this->plugin_object->txt('initialized_info'));
+        $subitem->setChecked($this->type->getInitialized());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('passed_label'), 'passed');
+        $subitem->setInfo($this->plugin_object->txt('passed_info'));
+        $subitem->setChecked($this->type->getPassed());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('progressed_label'), 'progressed');
+        $subitem->setInfo($this->plugin_object->txt('progressed_info'));
+        $subitem->setChecked($this->type->getProgressed());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('satisfied_label'), 'satisfied');
+        $subitem->setInfo($this->plugin_object->txt('satisfied_info'));
+        $subitem->setChecked($this->type->getSatisfied());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('terminated_label'), 'terminated');
+        $subitem->setInfo($this->plugin_object->txt('terminated_info'));
+        $subitem->setChecked($this->type->getTerminated());
+        $item->addSubItem($subitem);
+
+        $form->addItem($item);
+
+        $item = new ilCheckboxInputGUI($this->plugin_object->txt('hide_data_label'), 'hide_data');
+        $item->setInfo($this->plugin_object->txt('hide_data_info'));
+        $item->setChecked($this->type->getHideData());
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('timestamp_label'), 'timestamp');
+        $subitem->setInfo($this->plugin_object->txt('timestamp_info'));
+        $subitem->setChecked($this->type->getTimestamp());
+        $item->addSubItem($subitem);
+
+        $subitem = new ilCheckboxInputGUI($this->plugin_object->txt('duration_label'), 'duration');
+        $subitem->setInfo($this->plugin_object->txt('duration_info'));
+        $subitem->setChecked($this->type->getDuration());
+        $item->addSubItem($subitem);
+
+        $form->addItem($item);
+
+        $item = new ilCheckboxInputGUI($this->plugin_object->txt('no_substatements_label'), 'no_substatements');
+        $item->setInfo($this->plugin_object->txt('no_substatements_info'));
+        $item->setChecked($this->type->getNoSubstatements());
+        $form->addItem($item);
+
+        $item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_privacy_setting_conf'), 'force_privacy_setting');
+        $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_setting_default'), 0);
+        $item->addOption($op);
+        $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_setting_force'), 1);
+        $item->addOption($op);
+        $item->setValue($this->type->getForcePrivacySettings());
+        $form->addItem($item);
+
+        $sectionHeader = new ilFormSectionHeaderGUI();
+        $sectionHeader->setTitle($this->plugin_object->txt('hints'));
+        $form->addItem($sectionHeader);
+
+
+		$item = new ilCheckboxInputGUI($this->getPluginObject()->txt('conf_external_lrs'), 'external_lrs');
+		$item->setValue($this->type->getExternalLrs());
+		$item->setInfo($this->plugin_object->txt('info_external_lrs'));
+		$form->addItem($item);
+		
 		$item = new ilTextAreaInputGUI($this->plugin_object->txt('conf_privacy_comment_default'), 'privacy_comment_default');
 		$item->setInfo($this->plugin_object->txt('info_privacy_comment_default'));
 		$item->setValue($this->type->getPrivacyCommentDefault());
@@ -384,6 +478,26 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 			$this->type->setPrivacyName($this->form->getInput("privacy_name"));
 			$this->type->setPrivacyCommentDefault($this->form->getInput("privacy_comment_default"));
 			$this->type->setRemarks($this->form->getInput("remarks"));
+
+			$this->type->setOnlyMoveon((bool)$this->form->getInput("only_moveon"));
+			$this->type->setAchieved((bool)$this->form->getInput("achieved"));
+			$this->type->setAnswered((bool)$this->form->getInput("answered"));
+			$this->type->setCompleted((bool)$this->form->getInput("completed"));
+			$this->type->setFailed((bool)$this->form->getInput("failed"));
+			$this->type->setInitialized((bool)$this->form->getInput("initialized"));
+			$this->type->setPassed((bool)$this->form->getInput("passed"));
+			$this->type->setProgressed((bool)$this->form->getInput("progressed"));
+			$this->type->setSatisfied((bool)$this->form->getInput("satisfied"));
+			$this->type->setTerminated((bool)$this->form->getInput("terminated"));
+			$this->type->setHideData((bool)$this->form->getInput("hide_data"));
+			$this->type->setTimestamp((bool)$this->form->getInput("timestamp"));
+			$this->type->setDuration((bool)$this->form->getInput("duration"));
+			$this->type->setNoSubstatements((bool)$this->form->getInput("no_substatements"));
+
+			$this->type->setForcePrivacySettings((bool) $this->form->getInput("force_privacy_setting"));
+			if ($this->type->getForcePrivacySettings()) {
+				$this->type->updatePrivacySettingsFromLrsType();
+			}
 
 			ilUtil::sendSuccess($this->plugin_object->txt('type_saved'), true);
 			if ($create == true) {

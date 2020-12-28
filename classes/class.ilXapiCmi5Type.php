@@ -19,8 +19,6 @@ class ilXapiCmi5Type
 	const AVAILABILITY_EXISTING = 1; // Existing objects of the can be used, but no new created
 	const AVAILABILITY_CREATE = 2;  // New objects of this type can be created
 	
-	
-	
 	const LAUNCH_TYPE_PAGE = "page";
 	const LAUNCH_TYPE_LINK = "link";
 	const LAUNCH_TYPE_EMBED = "embed";
@@ -39,26 +37,13 @@ class ilXapiCmi5Type
 	const LOG_LEVEL_OFF = 0;
 	const LOG_LEVEL_ERROR_AND_WARNING = 1;
 	const LOG_LEVEL_DEBUG = 2;
-	
-    // const FIELDTYPE_ILIAS = 0;
-    // const FIELDTYPE_CALCULATED = 1;
-    // const FIELDTYPE_TEMPLATE = 2;
 
 	private $type_id;
 	private $name;
-	// private $xml = '';
-
-	/**
-	 * These data are also in the interface XML
-	 * 
-	 * title and description can be set with methods
-	 * the others are set by xml
-	 */
 	private $title;
 	private $description;
 	private $template;
 	private $launch_type = self::LAUNCH_TYPE_EMBED;
-	// private $meta_data_url;
 	
 	private $availability = self::AVAILABILITY_CREATE;
 	private $remarks;
@@ -74,15 +59,59 @@ class ilXapiCmi5Type
 	private $endpoint_use;
 	private $privacy_ident;
 	private $privacy_name;
-	private $privacy_comment_default;
-	private $external_lrs;
 	private $log;
-	// /**
-	 // * Array of fields
-	 // *   
-	 // * @var array 	list of field objects with properties
-	 // */
-	// private $fields = array();
+	
+	/** @var bool $force_privacy_settings */
+	private $force_privacy_settings = false;
+
+	/** @var bool $only_moveon */
+	private $only_moveon = false;
+
+	/** @var bool $achieved */
+	private $achieved = true;
+
+	/** @var bool $answered */
+	private $answered = true;
+
+	/** @var bool $completed */
+	private $completed = true;
+
+	/** @var bool $failed */
+	private $failed = true;
+
+	/** @var bool $initialized */
+	private $initialized = true;
+
+	/** @var bool $passed */
+	private $passed = true;
+
+	/** @var bool $progressed */
+	private $progressed = true;
+
+	/** @var bool $satisfied */
+	private $satisfied = true;
+
+	/** @var bool $terminated */
+	private $terminated = true;
+
+	/** @var bool $hide_data */
+	private $hide_data = false;
+
+	/** @var bool $timestamp */
+	private $timestamp = false;
+
+	/** @var bool $duration */
+	private $duration = true;
+
+	/** @var bool $no_substatements */
+	private $no_substatements = false;
+
+	/** @var bool $external_lrs */
+	private $external_lrs = false;
+
+	/** @var string $privacy_comment_default */
+	private $privacy_comment_default;
+
 
 	/**
 	 * Constructor
@@ -177,34 +206,16 @@ class ilXapiCmi5Type
 	}
 
 
-	// /**
-	 // * Get Template
-	 // * @return string template
-	 // */
-	public function getTemplate()
-	{
-		return $this->template;
-	}
 
-
-	// /**
-	 // * Get Launch Tape
-	 // * @return string launch_type
-	 // */
+	/**
+	 * Get Launch Tape
+	 * @return string launch_type
+	 */
 	public function getLaunchType()
 	{
 		return $this->launch_type;
 	}
 
-	// /**
-	 // * get Mata DataURL
-	 // * 
-	 // * @param string url
-	 // */
-	// public function getMetaDataUrl()
-	// {
-		// return $this->meta_data_url;
-	// }
 
 	/**
 	 * Set Availability
@@ -481,15 +492,247 @@ class ilXapiCmi5Type
 	}
 
 
-	public function setPrivacyCommentDefault($a_option)
-	{
-		$this->privacy_comment_default = $a_option;
-	}
-	
-	public function getPrivacyCommentDefault()
-	{
-		return $this->privacy_comment_default;
-	}
+    /**
+     * @return bool
+     */
+    public function getOnlyMoveon(): bool
+    {
+        return $this->only_moveon;
+    }
+
+    /**
+     * @param bool $only_moveon
+     */
+    public function setOnlyMoveon(bool $only_moveon)
+    {
+        $this->only_moveon = $only_moveon;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getAchieved(): bool
+    {
+        return $this->achieved;
+    }
+
+    /**
+     * @param bool $achieved
+     */
+    public function setAchieved(bool $achieved)
+    {
+        $this->achieved = $achieved;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getAnswered(): bool
+    {
+        return $this->answered;
+    }
+
+    /**
+     * @param bool $answered
+     */
+    public function setAnswered(bool $answered)
+    {
+        $this->answered = $answered;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getCompleted(): bool
+    {
+        return $this->completed;
+    }
+
+    /**
+     * @param bool $completed
+     */
+    public function setCompleted(bool $completed)
+    {
+        $this->completed = $completed;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getFailed(): bool
+    {
+        return $this->failed;
+    }
+
+    /**
+     * @param bool $failed
+     */
+    public function setFailed(bool $failed)
+    {
+        $this->failed = $failed;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getInitialized(): bool
+    {
+        return $this->initialized;
+    }
+
+    /**
+     * @param bool $initialized
+     */
+    public function setInitialized(bool $initialized)
+    {
+        $this->initialized = $initialized;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getPassed(): bool
+    {
+        return $this->passed;
+    }
+
+    /**
+     * @param bool $passed
+     */
+    public function setPassed(bool $passed)
+    {
+        $this->passed = $passed;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getProgressed(): bool
+    {
+        return $this->progressed;
+    }
+
+    /**
+     * @param bool $progressed
+     */
+    public function setProgressed(bool $progressed)
+    {
+        $this->progressed = $progressed;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getSatisfied(): bool
+    {
+        return $this->satisfied;
+    }
+
+    /**
+     * @param bool $satisfied
+     */
+    public function setSatisfied(bool $satisfied)
+    {
+        $this->satisfied = $satisfied;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getTerminated(): bool
+    {
+        return $this->terminated;
+    }
+
+    /**
+     * @param bool $terminated
+     */
+    public function setTerminated(bool $terminated)
+    {
+        $this->terminated = $terminated;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getHideData(): bool
+    {
+        return $this->hide_data;
+    }
+
+    /**
+     * @param bool $hide_data
+     */
+    public function setHideData(bool $hide_data)
+    {
+        $this->hide_data = $hide_data;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getTimestamp(): bool
+    {
+        return $this->timestamp;
+    }
+
+    /**
+     * @param bool $timestamp
+     */
+    public function setTimestamp(bool $timestamp)
+    {
+        $this->timestamp = $timestamp;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getDuration(): bool
+    {
+        return $this->duration;
+    }
+
+    /**
+     * @param bool $duration
+     */
+    public function setDuration(bool $duration)
+    {
+        $this->duration = $duration;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getNoSubstatements(): bool
+    {
+        return $this->no_substatements;
+    }
+
+    /**
+     * @param bool $no_substatements
+     */
+    public function setNoSubstatements(bool $no_substatements)
+    {
+        $this->no_substatements = $no_substatements;
+    }
+
+
+    /**
+     * @return bool
+     */
+    public function getForcePrivacySettings()
+    {
+        return $this->force_privacy_settings;
+    }
+    
+    /**
+     * @param bool $force_privacy_settings
+     */
+    public function setForcePrivacySettings($force_privacy_settings)
+    {
+        $this->force_privacy_settings = $force_privacy_settings;
+    }
+
 
 	public function setExternalLrs($a_option)
 	{
@@ -499,6 +742,16 @@ class ilXapiCmi5Type
 	public function getExternalLrs()
 	{
 		return $this->external_lrs;
+	}
+
+	public function setPrivacyCommentDefault($a_option)
+	{
+		$this->privacy_comment_default = $a_option;
+	}
+	
+	public function getPrivacyCommentDefault()
+	{
+		return $this->privacy_comment_default;
 	}
 
 	/**
@@ -537,6 +790,21 @@ class ilXapiCmi5Type
 			$this->setPrivacyName($row->privacy_name);
 			$this->setPrivacyCommentDefault($row->privacy_comment_default);
 			$this->setExternalLrs($row->external_lrs);
+            $this->setForcePrivacySettings((bool) $row->force_privacy_settings);
+            $this->setOnlyMoveon((bool)$row->only_moveon);
+            $this->setAchieved((bool)$row->achieved);
+            $this->setAnswered((bool)$row->answered);
+            $this->setCompleted((bool)$row->completed);
+            $this->setFailed((bool)$row->failed);
+            $this->setInitialized((bool)$row->initialized);
+            $this->setPassed((bool)$row->passed);
+            $this->setProgressed((bool)$row->progressed);
+            $this->setSatisfied((bool)$row->satisfied);
+            $this->setTerminated((bool)$row->c_terminated);
+            $this->setHideData((bool)$row->hide_data);
+            $this->setTimestamp((bool)$row->c_timestamp);
+            $this->setDuration((bool)$row->duration);
+            $this->setNoSubstatements((bool)$row->no_substatements);
 		}
 		return false;
 	}
@@ -589,7 +857,22 @@ class ilXapiCmi5Type
 				'privacy_ident' => array('integer', $this->getPrivacyIdent()),
 				'privacy_name' => array('integer', $this->getPrivacyName()),
 				'privacy_comment_default' => array('text', $this->getPrivacyCommentDefault()),
-				'external_lrs' => array('integer', $this->getExternalLrs())
+				'external_lrs' => array('integer', $this->getExternalLrs()),
+				'force_privacy_settings' => array('integer', (int) $this->getForcePrivacySettings()),
+                'only_moveon' => array('integer', (int)$this->getOnlyMoveon()),
+                'achieved' => array('integer', (int)$this->getAchieved()),
+                'answered' => array('integer', (int)$this->getAnswered()),
+                'completed' => array('integer', (int)$this->getCompleted()),
+                'failed' => array('integer', (int)$this->getFailed()),
+                'initialized' => array('integer', (int)$this->getInitialized()),
+                'passed' => array('integer', (int)$this->getPassed()),
+                'progressed' => array('integer', (int)$this->getProgressed()),
+                'satisfied' => array('integer', (int)$this->getSatisfied()),
+                'c_terminated' => array('integer', (int)$this->getTerminated()),
+                'hide_data' => array('integer', (int)$this->getHideData()),
+                'c_timestamp' => array('integer', (int)$this->getTimestamp()),
+                'duration' => array('integer', (int)$this->getDuration()),
+                'no_substatements' => array('integer', (int)$this->getNoSubstatements())
 			 )
 		);
 		return true;
@@ -698,26 +981,26 @@ class ilXapiCmi5Type
 		return $row->untrashed;
 	}
 	
-	static function getTypesStruct() {
-		$a_s = array (
-			  'type_name' 		=> array('type'=>'text', 'maxlength'=>32)
-			, 'title'			=> array('type'=>'text', 'maxlength'=>255)
-			, 'description'		=> array('type'=>'text', 'maxlength'=>4000)
-			, 'availability'	=> array('type'=>'a_integer', 'maxlength'=>1,'options'=>array(2,1,0)) //AVAILABILITY_CREATE,AVAILABILITY_EXISTING,AVAILABILITY_NONE
-			, 'log_level'		=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0,1,2))
-			// , 'lrs'				=> array('type'=>'headline')
-			, 'lrs_type_id'		=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0))
-			, 'lrs_endpoint'	=> array('type'=>'text', 'maxlength'=>64, 'required'=>true)
-			, 'lrs_key'			=> array('type'=>'text', 'maxlength'=>64, 'required'=>true)
-			, 'lrs_secret'		=> array('type'=>'text', 'maxlength'=>64, 'required'=>true)
-			, 'external_lrs'	=> array('type'=>'bool')
-			, 'privacy_ident'	=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0,1,2,3))
-			, 'privacy_name'	=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0,1,2,3))
-			, 'privacy_comment_default' => array('type'=>'text', 'maxlength'=>2000)
-			, 'remarks'			=> array('type'=>'text', 'maxlength'=>4000)
-		);
-		return $a_s;
-	}
+	// static function getTypesStruct() {
+		// $a_s = array (
+			  // 'type_name' 		=> array('type'=>'text', 'maxlength'=>32)
+			// , 'title'			=> array('type'=>'text', 'maxlength'=>255)
+			// , 'description'		=> array('type'=>'text', 'maxlength'=>4000)
+			// , 'availability'	=> array('type'=>'a_integer', 'maxlength'=>1,'options'=>array(2,1,0)) //AVAILABILITY_CREATE,AVAILABILITY_EXISTING,AVAILABILITY_NONE
+			// , 'log_level'		=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0,1,2))
+			// // , 'lrs'				=> array('type'=>'headline')
+			// , 'lrs_type_id'		=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0))
+			// , 'lrs_endpoint'	=> array('type'=>'text', 'maxlength'=>64, 'required'=>true)
+			// , 'lrs_key'			=> array('type'=>'text', 'maxlength'=>64, 'required'=>true)
+			// , 'lrs_secret'		=> array('type'=>'text', 'maxlength'=>64, 'required'=>true)
+			// , 'external_lrs'	=> array('type'=>'bool')
+			// , 'privacy_ident'	=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0,1,2,3))
+			// , 'privacy_name'	=> array('type'=>'a_integer', 'maxlength'=>1, 'options'=>array(0,1,2,3))
+			// , 'privacy_comment_default' => array('type'=>'text', 'maxlength'=>2000)
+			// , 'remarks'			=> array('type'=>'text', 'maxlength'=>4000)
+		// );
+		// return $a_s;
+	// }
 	
 	static function getCountTypesForCreate() {
 		global $ilDB;
@@ -734,5 +1017,74 @@ class ilXapiCmi5Type
 	public function getLogMessage($msg) {
 		return self::LOG_COMPONENT . ": " . $msg;
 	}
+	
+		
+	public function updatePrivacySettingsFromLrsType()
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $query = "
+			UPDATE xxcf_data_settings
+			SET privacy_ident = %s, 
+                privacy_name = %s, 
+                only_moveon = %s, 
+                achieved = %s, 
+                answered = %s, 
+                completed = %s, 
+                failed = %s, 
+                initialized = %s, 
+                passed = %s, 
+                progressed = %s, 
+                satisfied = %s, 
+                c_terminated = %s, 
+                hide_data = %s, 
+                c_timestamp = %s, 
+                duration = %s, 
+                no_substatements = %s
+            WHERE type_id = %s
+		";
+        
+        $DIC->database()->manipulateF(
+            $query,
+            ['text',
+             'text',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer'
+            ],
+            [$this->getPrivacyIdent(),
+             $this->getPrivacyName(),
+             $this->getOnlyMoveon(),
+             $this->getAchieved(),
+             $this->getAnswered(),
+             $this->getCompleted(),
+             $this->getFailed(),
+             $this->getInitialized(),
+             $this->getPassed(),
+             $this->getProgressed(),
+             $this->getSatisfied(),
+             $this->getTerminated(),
+             $this->getHideData(),
+             $this->getTimestamp(),
+             $this->getDuration(),
+             $this->getNoSubstatements(),
+             $this->getTypeId()
+            ]
+        );
+    }
+
+	
 }
 ?>

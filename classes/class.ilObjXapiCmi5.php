@@ -100,12 +100,6 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	private $no_substatements = false;
 
 
-	
-	/**
-	 * Return URL: This is a run-time variable set by the GUI and not stored
-	 * @var string
-	 */
-	protected $return_url;
 
 	/**
 	 * Constructor
@@ -704,7 +698,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 				'version' => array('integer', 1),
 				'use_fetch' => array('integer', $this->getUseFetch()),
 				'privacy_ident' => array('integer', $this->getPrivacyIdent()),
-				'privacy_name' => array('integer', $this->getPrivacyName()),
+				'privacy_name' => array('integer', (int)$this->getPrivacyName()),
 				'only_moveon' => array('integer', (int)$this->getOnlyMoveon()),
 				'achieved' => array('integer', (int)$this->getAchieved()),
 				'answered' => array('integer', (int)$this->getAnswered()),

@@ -146,11 +146,18 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 					$this->checkPermission("read");
 					if ($this->object->getTypeId() == "") {
 						$pl = new ilXapiCmi5Plugin();
-						$ilErr->raiseError($pl->txt('type_not_set'), $ilErr->MESSAGE);
-					} else 
-					if ($this->object->typedef->getAvailability() == ilXapiCmi5Type::AVAILABILITY_NONE)	{
-						$ilErr->raiseError($this->lng->txt('xxcf_message_type_not_available'), $ilErr->MESSAGE);
+						$ilErr->raiseError($this->txt('type_not_set'), $ilErr->MESSAGE);
+					} 
+					else if ($this->object->typedef->getAvailability() == ilXapiCmi5Type::AVAILABILITY_NONE)	{
+						$ilErr->raiseError($this->txt('message_type_not_available'), $ilErr->MESSAGE);
 					}
+					// else if ($this->object->getAvailabilityType() == $this->object::ACTIVATION_OFFLINE) {
+						// $ilErr->raiseError($this->txt('message_not_available'), $ilErr->MESSAGE);
+					// }
+					else if ($this->object->getLaunchUrl() == "") {
+						$ilErr->raiseError($this->txt('message_no_launch_url_specified'), $ilErr->MESSAGE);
+					}
+
 
 					if (!$cmd)
 					{
@@ -477,7 +484,7 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         $this->tabs_gui->activateTab('edit');
         // $this->tabs_gui->activateSubTab('settings');
 
-        $this->initForm('edit', $this->loadFormValues());
+        $this->editForm($this->loadFormValues());
         // $this->loadFormValues();
         $this->tpl->setContent($this->form->getHTML());
     }
@@ -492,7 +499,7 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         $this->tabs_gui->activateTab('edit');
         // $this->tabs_gui->activateSubTab('settings');
         
-        $this->initForm("edit");
+        $this->editForm();
         if ($this->form->checkInput())
         {
             $this->saveFormValues();
@@ -506,50 +513,84 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         }
     }
 
+    public function initCreateForm($a_new_type)
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+		$form = parent::initCreateForm($a_new_type);
+		
+		$item = new ilRadioGroupInputGUI($this->lng->txt('type'), 'type_id');
+		$item->setRequired(true);
+		$types = ilXapiCmi5Type::_getTypesData(false, ilXapiCmi5Type::AVAILABILITY_CREATE);
+		foreach ($types as $type)
+		{
+			$option = new ilRadioOption($type['title'], $type['type_id'], $type['description']);
+			$item->addOption($option);
+		}
+		$form->addItem($item);
+
+		return $form;
+	}
+	
+    /**
+     * @param ilObject $newObj
+     * @global $DIC
+     */
+	public function afterSave(ilObject $newObj)
+	{
+	    global $tpl,$DIC; /** @var Container $DIC */
+
+		$form = $this->initCreateForm($this->getType());
+        if (!$form->checkInput())
+        {
+            $form->setValuesByPost();
+            $tpl->setContent($form->getHTML());
+            return;
+        }
+
+		$newObj->setTypeId((int) $form->getInput("type_id"));
+		$newObj->setAvailabilityType( ilObjXapiCmi5::ACTIVATION_OFFLINE );
+		//take default values for type
+		$newObj->setPrivacyIdent( $newObj->typedef->getPrivacyIdent() );
+		$newObj->setPrivacyName( $newObj->typedef->getPrivacyName() );
+		$newObj->setOnlyMoveon( (int)$newObj->typedef->getOnlyMoveon() );
+		$newObj->setAchieved( (int)$newObj->typedef->getAchieved() );
+		$newObj->setAnswered( (int)$newObj->typedef->getAnswered() );
+		$newObj->setCompleted( (int)$newObj->typedef->getCompleted() );
+		$newObj->setFailed( (int)$newObj->typedef->getFailed() );
+		$newObj->setInitialized( (int)$newObj->typedef->getInitialized() );
+		$newObj->setPassed( (int)$newObj->typedef->getPassed() );
+		$newObj->setProgressed( (int)$newObj->typedef->getProgressed() );
+		$newObj->setSatisfied( (int)$newObj->typedef->getSatisfied() );
+		$newObj->setTerminated( (int)$newObj->typedef->getTerminated() );
+		$newObj->setHideData( (int)$newObj->typedef->getHideData() );
+		$newObj->setTimestamp( (int)$newObj->typedef->getTimestamp() );
+		$newObj->setDuration( (int)$newObj->typedef->getDuration() );
+		$newObj->setNoSubstatements( (int)$newObj->typedef->getNoSubstatements() );
+		$newObj->doUpdate();
+
+		parent::afterSave($newObj);
+	}
+
+	
     /**
      * Init properties form
      *
-     * @param        int        $a_mode        Form Edit Mode (IL_FORM_EDIT | IL_FORM_CREATE)
      * @param		 array		(assoc) form values
      * @access       protected
      */
-    protected function initForm($a_mode, $a_values = array())
+    protected function editForm($a_values = array())
     {
         if (is_object($this->form))
         {
             return true;
         }
-
-		$values = [];
-		$values['only_moveon'] = (int)$this->object->getOnlyMoveon();
-		$values['achieved'] = (int)$this->object->getAchieved();
-		$values['answered'] = (int)$this->object->getAnswered();
-		$values['completed'] = (int)$this->object->getCompleted();
-		$values['failed'] = (int)$this->object->getFailed();
-		$values['initialized'] = (int)$this->object->getInitialized();
-		$values['passed'] = (int)$this->object->getPassed();
-		$values['progressed'] = (int)$this->object->getProgressed();
-		$values['satisfied'] = (int)$this->object->getSatisfied();
-		$values['terminated'] = (int)$this->object->getTerminated();
-		$values['hide_data'] = (int)$this->object->getHideData();
-		$values['timestamp'] = (int)$this->object->getTimestamp();
-		$values['duration'] = (int)$this->object->getDuration();
-		$values['no_substatements'] = (int)$this->object->getNoSubstatements();
-
-		$a_values = array_replace($values, $a_values);
+		
+		$forcePrivacySettings = $this->object->typedef->getForcePrivacySettings();
 
         include_once("./Services/Form/classes/class.ilPropertyFormGUI.php");
         $this->form = new ilPropertyFormGUI();
         $this->form->setFormAction($this->ctrl->getFormAction($this));
 
-        // if ($a_mode != "create")
-        // {
-	        // $item = new ilCustomInputGUI($this->lng->txt('type'), '');
-	        // $item->setHtml($this->object->typedef->getTitle());
-	        // $item->setInfo($this->object->typedef->getDescription());
-	        // $this->form->addItem($item);
-        // }
-        
         $item = new ilTextInputGUI($this->lng->txt('title'), 'title');
         $item->setSize(40);
         $item->setMaxLength(128);
@@ -564,212 +605,220 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         //$item->setCols(80);
 		$item->setValue($a_values['description']);        
         $this->form->addItem($item);
-       
-        // if ($a_mode == "create")
-        // {
-            $item = new ilRadioGroupInputGUI($this->lng->txt('type'), 'type_id');
-            $item->setRequired(true);
-            $types = ilXapiCmi5Type::_getTypesData(false, ilXapiCmi5Type::AVAILABILITY_CREATE);
-            foreach ($types as $type)
-            {
-                $option = new ilRadioOption($type['title'], $type['type_id'], $type['description']);
-                $item->addOption($option);
-            }
-			$item->setValue($this->object->typedef->getTypeId());
-            $this->form->addItem($item);
 
-            // $this->form->setTitle($this->txt('xxcf_new'));
-            // $this->form->addCommandButton((!$this->checkCreationMode() ? 'update' : 'save'), $this->lng->txt('save'));
-            // $this->form->addCommandButton('cancelCreate', $this->lng->txt("cancel"));
-        // }
-        // else
-        // {
-            $item = new ilCheckboxInputGUI($this->lng->txt('online'), 'online');
-            $item->setInfo($this->txt("xxcf_online_info"));
-			$item->setValue("1");
-			if ($a_values['online'])
-			{
-				$item->setChecked(true);
-			}        
-          	$this->form->addItem($item);
-			
-			$item = new ilFormSectionHeaderGUI();
-			$item->setTitle($this->txt("launch_options"));
-			$this->form->addItem($item);
+		$item = new ilNonEditableValueGUI($this->lng->txt('type'), 'type_title');
+		$item->setValue($a_values['type_title']);
+		$item->setInfo($a_values['type_description']);
+		$this->form->addItem($item);
+		
+		$item = new ilCheckboxInputGUI($this->lng->txt('online'), 'online');
+		$item->setInfo($this->txt("xxcf_online_info"));
+		$item->setValue("1");
+		if ($a_values['online'])
+		{
+			$item->setChecked(true);
+		}        
+		$this->form->addItem($item);
+		
+		$item = new ilFormSectionHeaderGUI();
+		$item->setTitle($this->txt("launch_options"));
+		$this->form->addItem($item);
 
-			$item = new ilTextInputGUI($this->txt('launch_url'), 'launch_url');
-			$item->setSize(40);
-			$item->setMaxLength(128);
-			$item->setRequired(true);
-			$item->setInfo($this->txt('launch_url_info'));
-			$item->setValue($a_values['launch_url']);        
-			$this->form->addItem($item);
-			
-			$item = new ilTextInputGUI($this->txt('activity_id'), 'activity_id');
-			$item->setSize(40);
-			$item->setMaxLength(128);
-			$item->setValidationRegexp(self::ACTIVITY_ID_VALIDATION_REGEXP);
-			$item->setValidationFailureMessage($this->txt('activity_id_validation_failure'));
-			$item->setRequired(true);
-			// $item->setRequired(true);
-			$item->setInfo($this->txt('activity_id_info'));
-			$item->setValue($a_values['activity_id']);        
-			$this->form->addItem($item);
-            
-            $item = new ilCheckboxInputGUI($this->txt('use_fetch'), 'use_fetch');
-            $item->setInfo($this->txt("use_fetch_info"));
-			$item->setValue("1");
-			if ($a_values['use_fetch'])
-			{
-				$item->setChecked(true);
-			}        
-          	$this->form->addItem($item);
+		$item = new ilTextInputGUI($this->txt('launch_url'), 'launch_url');
+		$item->setSize(40);
+		$item->setMaxLength(128);
+		$item->setRequired(true);
+		$item->setInfo($this->txt('launch_url_info'));
+		$item->setValue($a_values['launch_url']);        
+		$this->form->addItem($item);
+		
+		$item = new ilTextInputGUI($this->txt('activity_id'), 'activity_id');
+		$item->setSize(40);
+		$item->setMaxLength(128);
+		$item->setValidationRegexp(self::ACTIVITY_ID_VALIDATION_REGEXP);
+		$item->setValidationFailureMessage($this->txt('activity_id_validation_failure'));
+		$item->setRequired(true);
+		// $item->setRequired(true);
+		$item->setInfo($this->txt('activity_id_info'));
+		$item->setValue($a_values['activity_id']);        
+		$this->form->addItem($item);
+		
+		$item = new ilCheckboxInputGUI($this->txt('use_fetch'), 'use_fetch');
+		$item->setInfo($this->txt("use_fetch_info"));
+		$item->setValue("1");
+		if ($a_values['use_fetch'])
+		{
+			$item->setChecked(true);
+		}        
+		$this->form->addItem($item);
 
-            $item = new ilCheckboxInputGUI($this->txt('open_mode_iframe'), 'open_mode_iframe');
-            $item->setInfo($this->txt("open_mode_iframe_info"));
-			$item->setValue("1");
-			if ($a_values['open_mode_iframe'])
-			{
-				$item->setChecked(true);
-			}        
-          	$this->form->addItem($item);
-			
+		$item = new ilCheckboxInputGUI($this->txt('open_mode_iframe'), 'open_mode_iframe');
+		$item->setInfo($this->txt("open_mode_iframe_info"));
+		$item->setValue("1");
+		if ($a_values['open_mode_iframe'])
+		{
+			$item->setChecked(true);
+		}        
+		$this->form->addItem($item);
+		
 
-			$item = new ilFormSectionHeaderGUI();
+		$item = new ilFormSectionHeaderGUI();
+		if ($forcePrivacySettings) {
+			$item->setTitle($this->txt("privacy_options") . ' (' . $this->txt("no_change_default_privacy_settings") .')');
+		} else {
 			$item->setTitle($this->txt("privacy_options"));
-			$this->form->addItem($item);
+		}
+		$this->form->addItem($item);
 
-			$item = new ilRadioGroupInputGUI($this->txt('content_privacy_ident'), 'privacy_ident');
-			$op = new ilRadioOption($this->txt('conf_privacy_ident_0'), 0);
-			$item->addOption($op);
-			// $op = new ilRadioOption($this->txt('conf_privacy_ident_1'), 1);
-			// $item->addOption($op);
-			// $op = new ilRadioOption($this->txt('conf_privacy_ident_2'), 2);
-			// $item->addOption($op);
-			$op = new ilRadioOption($this->txt('conf_privacy_ident_3'), 3);
-			$item->addOption($op);
-			$op = new ilRadioOption($this->txt('conf_privacy_ident_4'), 4);
-			$item->addOption($op);
-			$item->setValue($a_values['privacy_ident']);
-			$item->setInfo($this->txt('info_privacy_ident'));
-			$item->setRequired(false);
-			$this->form->addItem($item);
+		$item = new ilRadioGroupInputGUI($this->txt('content_privacy_ident'), 'privacy_ident');
+		$op = new ilRadioOption($this->txt('conf_privacy_ident_0'), 0);
+		$item->addOption($op);
+		// $op = new ilRadioOption($this->txt('conf_privacy_ident_1'), 1);
+		// $item->addOption($op);
+		// $op = new ilRadioOption($this->txt('conf_privacy_ident_2'), 2);
+		// $item->addOption($op);
+		$op = new ilRadioOption($this->txt('conf_privacy_ident_3'), 3);
+		$item->addOption($op);
+		$op = new ilRadioOption($this->txt('conf_privacy_ident_4'), 4);
+		$item->addOption($op);
+		$item->setValue($a_values['privacy_ident']);
+		$item->setInfo($this->txt('info_privacy_ident'));
+		$item->setRequired(false);
+		$item->setDisabled($forcePrivacySettings);
+		$this->form->addItem($item);
 
-			$item = new ilRadioGroupInputGUI($this->txt('content_privacy_name'), 'privacy_name');
-			$op = new ilRadioOption($this->txt('conf_privacy_name_0'), 0);
-			$item->addOption($op);
-			$op = new ilRadioOption($this->txt('conf_privacy_name_1'), 1);
-			$item->addOption($op);
-			$op = new ilRadioOption($this->txt('conf_privacy_name_2'), 2);
-			$item->addOption($op);
-			$op = new ilRadioOption($this->txt('conf_privacy_name_3'), 3);
-			$item->addOption($op);
-			$item->setValue($a_values['privacy_name']);
-			$item->setInfo($this->txt('info_privacy_name'));
-			$item->setRequired(false);
-			$this->form->addItem($item);
+		$item = new ilRadioGroupInputGUI($this->txt('content_privacy_name'), 'privacy_name');
+		$op = new ilRadioOption($this->txt('conf_privacy_name_0'), 0);
+		$item->addOption($op);
+		$op = new ilRadioOption($this->txt('conf_privacy_name_1'), 1);
+		$item->addOption($op);
+		$op = new ilRadioOption($this->txt('conf_privacy_name_2'), 2);
+		$item->addOption($op);
+		$op = new ilRadioOption($this->txt('conf_privacy_name_3'), 3);
+		$item->addOption($op);
+		$item->setValue($a_values['privacy_name']);
+		$item->setInfo($this->txt('info_privacy_name'));
+		$item->setRequired(false);
+		$item->setDisabled($forcePrivacySettings);
+		$this->form->addItem($item);
 
-			$item = new ilFormSectionHeaderGUI();
-			$item->setTitle($this->txt('title_data_reduction'));
-			$this->form->addItem($item);
+		$item = new ilFormSectionHeaderGUI();
+		if ($forcePrivacySettings) {
+			$item->setTitle($this->txt("title_data_reduction") . ' (' . $this->txt("no_change_default_privacy_settings") .')');
+		} else {
+			$item->setTitle($this->txt("title_data_reduction"));
+		}
+		$this->form->addItem($item);
 
-			$item = new ilCheckboxInputGUI($this->txt('only_moveon_label'), 'only_moveon');
-			$item->setInfo($this->txt('only_moveon_info'));
-			$item->setValue("1");
-			$item->setChecked((bool)$a_values['only_moveon']);
+		$item = new ilCheckboxInputGUI($this->txt('only_moveon_label'), 'only_moveon');
+		$item->setInfo($this->txt('only_moveon_info'));
+		$item->setValue("1");
+		$item->setChecked((bool)$a_values['only_moveon']);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('achieved_label'), 'achieved');
-			$subitem->setInfo($this->txt('achieved_info'));
-			$subitem->setChecked((bool)$a_values['achieved']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('achieved_label'), 'achieved');
+		$subitem->setInfo($this->txt('achieved_info'));
+		$subitem->setChecked((bool)$a_values['achieved']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('answered_label'), 'answered');
-			$subitem->setInfo($this->txt('answered_info'));
-			$subitem->setChecked((bool)$a_values['answered']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('answered_label'), 'answered');
+		$subitem->setInfo($this->txt('answered_info'));
+		$subitem->setChecked((bool)$a_values['answered']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('completed_label'), 'completed');
-			$subitem->setInfo($this->txt('completed_info'));
-			$subitem->setChecked((bool)$a_values['completed']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('completed_label'), 'completed');
+		$subitem->setInfo($this->txt('completed_info'));
+		$subitem->setChecked((bool)$a_values['completed']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('failed_label'), 'failed');
-			$subitem->setInfo($this->txt('failed_info'));
-			$subitem->setChecked((bool)$a_values['failed']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('failed_label'), 'failed');
+		$subitem->setInfo($this->txt('failed_info'));
+		$subitem->setChecked((bool)$a_values['failed']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('initialized_label'), 'initialized');
-			$subitem->setInfo($this->txt('initialized_info'));
-			$subitem->setChecked((bool)$a_values['initialized']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('initialized_label'), 'initialized');
+		$subitem->setInfo($this->txt('initialized_info'));
+		$subitem->setChecked((bool)$a_values['initialized']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('passed_label'), 'passed');
-			$subitem->setInfo($this->txt('passed_info'));
-			$subitem->setChecked((bool)$a_values['passed']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('passed_label'), 'passed');
+		$subitem->setInfo($this->txt('passed_info'));
+		$subitem->setChecked((bool)$a_values['passed']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('progressed_label'), 'progressed');
-			$subitem->setInfo($this->txt('progressed_info'));
-			$subitem->setChecked((bool)$a_values['progressed']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('progressed_label'), 'progressed');
+		$subitem->setInfo($this->txt('progressed_info'));
+		$subitem->setChecked((bool)$a_values['progressed']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('satisfied_label'), 'satisfied');
-			$subitem->setInfo($this->txt('satisfied_info'));
-			$subitem->setChecked((bool)$a_values['satisfied']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('satisfied_label'), 'satisfied');
+		$subitem->setInfo($this->txt('satisfied_info'));
+		$subitem->setChecked((bool)$a_values['satisfied']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$subitem = new ilCheckboxInputGUI($this->txt('terminated_label'), 'terminated');
-			$subitem->setInfo($this->txt('terminated_info'));
-			$subitem->setChecked((bool)$a_values['terminated']);
-			$item->addSubItem($subitem);
+		$subitem = new ilCheckboxInputGUI($this->txt('terminated_label'), 'terminated');
+		$subitem->setInfo($this->txt('terminated_info'));
+		$subitem->setChecked((bool)$a_values['terminated']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$this->form->addItem($item);
-
-	
-			$item = new ilCheckboxInputGUI($this->txt('hide_data_label'), 'hide_data');
-			$item->setInfo($this->txt('hide_data_info'));
-			$item->setValue("1");
-			$item->setChecked((bool)$a_values['hide_data']);
-
-			$subitem = new ilCheckboxInputGUI($this->txt('timestamp_label'), 'timestamp');
-			$subitem->setInfo($this->txt('timestamp_info'));
-			$subitem->setChecked((bool)$a_values['timestamp']);
-			$item->addSubItem($subitem);
-
-			$subitem = new ilCheckboxInputGUI($this->txt('duration_label'), 'duration');
-			$subitem->setInfo($this->txt('duration_info'));
-			$subitem->setChecked((bool)$a_values['duration']);
-			$item->addSubItem($subitem);
-
-			$this->form->addItem($item);
-
-
-			$item = new ilCheckboxInputGUI($this->txt('no_substatements_label'), 'no_substatements');
-			$item->setInfo($this->txt('no_substatements_info'));
-			$item->setValue("1");
-			$item->setChecked((bool)$a_values['no_substatements']);
-			$this->form->addItem($item);
+		$item->setDisabled($forcePrivacySettings);
+		$this->form->addItem($item);
 
 
+		$item = new ilCheckboxInputGUI($this->txt('hide_data_label'), 'hide_data');
+		$item->setInfo($this->txt('hide_data_info'));
+		$item->setValue("1");
+		$item->setChecked((bool)$a_values['hide_data']);
 
-			$item = new ilFormSectionHeaderGUI();
-			$item->setTitle($this->txt("log_options"));
-			$this->form->addItem($item);
+		$subitem = new ilCheckboxInputGUI($this->txt('timestamp_label'), 'timestamp');
+		$subitem->setInfo($this->txt('timestamp_info'));
+		$subitem->setChecked((bool)$a_values['timestamp']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-			$item = new ilCheckboxInputGUI($this->txt('show_debug'), 'show_debug');
-			$item->setInfo($this->txt("show_debug_info"));
-			$item->setValue("1");
-			if ($a_values['show_debug'])
-			{
-				$item->setChecked(true);
-			}        
-			$this->form->addItem($item);
+		$subitem = new ilCheckboxInputGUI($this->txt('duration_label'), 'duration');
+		$subitem->setInfo($this->txt('duration_info'));
+		$subitem->setChecked((bool)$a_values['duration']);
+		$subitem->setDisabled($forcePrivacySettings);
+		$item->addSubItem($subitem);
 
-            $this->form->setTitle($this->lng->txt('settings'));
-            $this->form->addCommandButton("update", $this->lng->txt("save"));
-            $this->form->addCommandButton("view", $this->lng->txt("cancel"));
+		$item->setDisabled($forcePrivacySettings);
+		$this->form->addItem($item);
 
-        // }
+
+		$item = new ilCheckboxInputGUI($this->txt('no_substatements_label'), 'no_substatements');
+		$item->setInfo($this->txt('no_substatements_info'));
+		$item->setValue("1");
+		$item->setChecked((bool)$a_values['no_substatements']);
+		$item->setDisabled($forcePrivacySettings);
+		$this->form->addItem($item);
+
+
+		$item = new ilFormSectionHeaderGUI();
+		$item->setTitle($this->txt("log_options"));
+		$this->form->addItem($item);
+
+		$item = new ilCheckboxInputGUI($this->txt('show_debug'), 'show_debug');
+		$item->setInfo($this->txt("show_debug_info"));
+		$item->setValue("1");
+		if ($a_values['show_debug'])
+		{
+			$item->setChecked(true);
+		}        
+		$this->form->addItem($item);
+
+		$this->form->setTitle($this->lng->txt('settings'));
+		$this->form->addCommandButton("update", $this->lng->txt("save"));
+		$this->form->addCommandButton("view", $this->lng->txt("cancel"));
+
     }
     
 
@@ -785,7 +834,8 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 		$values['title'] = $this->object->getTitle();
 		$values['description'] = $this->object->getDescription();
 		$values['type_id'] = $this->object->getTypeId();
-		$values['type'] = $this->object->typedef->getTitle();
+		$values['type_title'] = $this->object->typedef->getTitle();
+		$values['type_description'] = $this->object->typedef->getDescription();
 		$values['instructions'] = $this->object->getInstructions();
 		if ($this->object->getAvailabilityType() == ilObjXapiCmi5::ACTIVATION_UNLIMITED)
 		{
@@ -801,20 +851,20 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 		$values['privacy_ident'] = $this->object->getPrivacyIdent();
 		$values['privacy_name'] = $this->object->getPrivacyName();
 
-		$values['only_moveon'] = (int)$this->object->getOnlyMoveon();
-		$values['achieved'] = (int)$this->object->getAchieved();
-		$values['answered'] = (int)$this->object->getAnswered();
-		$values['completed'] = (int)$this->object->getCompleted();
-		$values['failed'] = (int)$this->object->getFailed();
-		$values['initialized'] = (int)$this->object->getInitialized();
-		$values['passed'] = (int)$this->object->getPassed();
-		$values['progressed'] = (int)$this->object->getProgressed();
-		$values['satisfied'] = (int)$this->object->getSatisfied();
-		$values['terminated'] = (int)$this->object->getTerminated();
-		$values['hide_data'] = (int)$this->object->getHideData();
-		$values['timestamp'] = (int)$this->object->getTimestamp();
-		$values['duration'] = (int)$this->object->getDuration();
-		$values['no_substatements'] = (int)$this->object->getNoSubstatements();
+		$values['only_moveon'] = $this->object->getOnlyMoveon();
+		$values['achieved'] = $this->object->getAchieved();
+		$values['answered'] = $this->object->getAnswered();
+		$values['completed'] = $this->object->getCompleted();
+		$values['failed'] = $this->object->getFailed();
+		$values['initialized'] = $this->object->getInitialized();
+		$values['passed'] = $this->object->getPassed();
+		$values['progressed'] = $this->object->getProgressed();
+		$values['satisfied'] = $this->object->getSatisfied();
+		$values['terminated'] = $this->object->getTerminated();
+		$values['hide_data'] = $this->object->getHideData();
+		$values['timestamp'] = $this->object->getTimestamp();
+		$values['duration'] = $this->object->getDuration();
+		$values['no_substatements'] = $this->object->getNoSubstatements();
 		
 
 		return $values;
@@ -831,10 +881,10 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 
         $this->object->setTitle($this->form->getInput("title"));
         $this->object->setDescription($this->form->getInput("description"));
-        if ($this->form->getInput("type_id"))
-        {
-            $this->object->setTypeId($this->form->getInput("type_id"));
-        }
+        // if ($this->form->getInput("type_id"))
+        // {
+            // $this->object->setTypeId($this->form->getInput("type_id"));
+        // }
         $this->object->setAvailabilityType($this->form->getInput('online') ? ilObjXapiCmi5::ACTIVATION_UNLIMITED : ilObjXapiCmi5::ACTIVATION_OFFLINE);
 		$this->object->setLaunchUrl($this->form->getInput("launch_url"));
 		$this->object->setActivityId($this->form->getInput("activity_id"));
@@ -843,23 +893,24 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 		$this->object->setShowDebug($this->form->getInput("show_debug"));
 		$this->object->setUseFetch($this->form->getInput("use_fetch"));
 		$this->object->setOpenMode($this->form->getInput("open_mode_iframe"));
-		$this->object->setPrivacyIdent($this->form->getInput("privacy_ident"));
-		$this->object->setPrivacyName($this->form->getInput("privacy_name"));
-
-		$this->object->setOnlyMoveon((bool)$this->form->getInput("only_moveon"));
-		$this->object->setAchieved((bool)$this->form->getInput("achieved"));
-		$this->object->setAnswered((bool)$this->form->getInput("answered"));
-		$this->object->setCompleted((bool)$this->form->getInput("completed"));
-		$this->object->setFailed((bool)$this->form->getInput("failed"));
-		$this->object->setInitialized((bool)$this->form->getInput("initialized"));
-		$this->object->setPassed((bool)$this->form->getInput("passed"));
-		$this->object->setProgressed((bool)$this->form->getInput("progressed"));
-		$this->object->setSatisfied((bool)$this->form->getInput("satisfied"));
-		$this->object->setTerminated((bool)$this->form->getInput("terminated"));
-		$this->object->setHideData((bool)$this->form->getInput("hide_data"));
-		$this->object->setTimestamp((bool)$this->form->getInput("timestamp"));
-		$this->object->setDuration((bool)$this->form->getInput("duration"));
-		$this->object->setNoSubstatements((bool)$this->form->getInput("no_substatements"));
+		if ($this->object->typedef->getForcePrivacySettings() == false) {
+			$this->object->setPrivacyIdent($this->form->getInput("privacy_ident"));
+			$this->object->setPrivacyName($this->form->getInput("privacy_name"));
+			$this->object->setOnlyMoveon((bool)$this->form->getInput("only_moveon"));
+			$this->object->setAchieved((bool)$this->form->getInput("achieved"));
+			$this->object->setAnswered((bool)$this->form->getInput("answered"));
+			$this->object->setCompleted((bool)$this->form->getInput("completed"));
+			$this->object->setFailed((bool)$this->form->getInput("failed"));
+			$this->object->setInitialized((bool)$this->form->getInput("initialized"));
+			$this->object->setPassed((bool)$this->form->getInput("passed"));
+			$this->object->setProgressed((bool)$this->form->getInput("progressed"));
+			$this->object->setSatisfied((bool)$this->form->getInput("satisfied"));
+			$this->object->setTerminated((bool)$this->form->getInput("terminated"));
+			$this->object->setHideData((bool)$this->form->getInput("hide_data"));
+			$this->object->setTimestamp((bool)$this->form->getInput("timestamp"));
+			$this->object->setDuration((bool)$this->form->getInput("duration"));
+			$this->object->setNoSubstatements((bool)$this->form->getInput("no_substatements"));
+		}
 
         $this->object->update();
     }
@@ -905,25 +956,6 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         $rg->addOption($ro);
         $form->addItem($rg);
 
-		// $item = new ilCheckboxInputGUI($this->txt('use_score'), 'use_score');
-		// $item->setInfo($this->txt("use_score_info"));
-		// $item->setValue("1");
-		// if ($this->object->getLPUseScore()) {
-			// $item->setChecked(true);
-		// }
-        // $ni = new ilNumberInputGUI($this->txt('lp_threshold'),'lp_threshold');
-        // $ni->setMinValue(0);
-        // $ni->setMaxValue(1);
-        // $ni->setDecimals(2);
-        // $ni->setSize(4);
-        // $ni->setRequired(true);
-        // $ni->setValue($this->object->getLPThreshold());
-        // $ni->setInfo($this->txt('lp_threshold_info'));
-        // $item->addSubItem($ni);
-		// $form->addItem($item);
-
-		
-		
         $form->addCommandButton('updateLPSettings', $lng->txt('save'));
         $this->form = $form;
 
@@ -949,8 +981,6 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         }
 
         $this->object->setLPMode($this->form->getInput('lp_mode'));
-		//score
-        // $this->object->setLPThreshold($this->form->getInput('lp_threshold'));
         $this->object->update();
         $this->ctrl->redirect($this, 'editLPSettings');
     }

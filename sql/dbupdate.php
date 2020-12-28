@@ -764,6 +764,144 @@ if ($ilDB->tableColumnExists('xxcf_data_settings', 'timestamp')) {
     $ilDB->renameTableColumn('xxcf_data_settings', 'timestamp', 'c_timestamp');
 }
 ?>
+<#20>
+<?php
+if($ilDB->tableExists('xxcf_data_types'))
+{
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'force_privacy_settings') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'force_privacy_settings', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+        ));
+    }
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'only_moveon') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'only_moveon', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+        ));
+    }
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'achieved') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'achieved', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'answered') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'answered', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'completed') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'completed', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'failed') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'failed', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'initialized') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'initialized', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'passed') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'passed', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'progressed') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'progressed', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'satisfied') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'satisfied', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'c_terminated') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'c_terminated', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'hide_data') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'hide_data', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'c_timestamp') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'c_timestamp', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'duration') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'duration', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 1
+        ));
+    }
+
+    if ( !$ilDB->tableColumnExists('xxcf_data_types', 'no_substatements') ) {
+        $ilDB->addTableColumn('xxcf_data_types', 'no_substatements', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+        ));
+    }
+}
+?>
 
 
 

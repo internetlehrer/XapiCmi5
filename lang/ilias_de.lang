@@ -31,7 +31,9 @@ xxcf_description_info#:#Die Beschreibung wird in Auflistungen unter dem Titel an
 xxcf_edit_type#:#Typ-Definition bearbeiten
 instructions#:#Anleitung
 xxcf_instructions_info#:#Die Anleitung wird auf der Info-Seite angezeigt.
-xxcf_message_type_not_available#:#xAPI-Objekte dieses Typs sind leider nicht mehr verfügbar.
+message_type_not_available#:#xAPI-Objekte mit diesem LRS-Typ sind aktuell nicht verfügbar.
+message_not_available#:#Dieses Objekt ist aktuell nicht verfügbar.
+message_no_launch_url_specified#:#Die URL der Ressource fehlt.
 xxcf_online_info#:#Damit wird das Objekt sichtbar für andere Nutzer
 xxcf_refresh_meta_data#:#Meta-Daten aktualisieren
 type_availability#:#Verfügbarkeit
@@ -282,5 +284,11 @@ duration_label#:#Zeitdauer 'duration'
 duration_info#:#Die Zeitdauer kann z.B. für die Beantwortung einer Aufgabe erfasst werden. Die Zeitdauer 'duration' wird durch diese Option auf den Standardwert 0 Sekunden (PT00.000S) gesetzt.
 no_substatements_label#:#Substatements nicht speichern
 no_substatements_info#:#Mit dieser Option, die nur für den ILIAS LRS-Proxy zur Verfügung steht, kann die Speicherung von untergeordneten Statements unterdrückt werden. Dies kann z.B. die Beantwortung einzelner Aufgaben in einem Test beeinflussen. Dem Content wird mitgeteilt, dass die Statements gespeichert worden wären.
-
-
+lrs_type#:#LRS-Typ
+lrs_authentication#:#Authentifizierung
+conf_privacy_setting_conf#:#Konfigurationsoptionen
+conf_privacy_setting_info#:#Konfigurationsoptionen für die Datenschutzeinstellungen
+conf_privacy_setting_default#:#Standardeinstellungen, änderbar für Objekte
+conf_privacy_setting_force#:#Die Einstellungen sind für Objekte nicht änderbar.
+no_change_default_privacy_settings#:#Die Einstellungen sind bei diesem LRS-Typ nicht änderbar
+hints#:#Hinweise
