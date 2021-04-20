@@ -25,6 +25,7 @@ if (strtoupper($_SERVER["REQUEST_METHOD"]) == "OPTIONS") {
 	header('Access-Control-Allow-Credentials: true');
 	header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 	header('Access-Control-Allow-Headers: X-Experience-API-Version,Accept,Authorization,Etag,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With');
+	header('Access-Control-Max-Age: 600');
 	exit;
 }
 $sniffVerbs = array (
@@ -53,6 +54,11 @@ elseif( !empty($_SERVER['HTTP_AUTHORIZATION']) )
 else
 {
 	header('HTTP/1.1 401 Authorization Required');
+	header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+	header('Access-Control-Allow-Credentials: true');
+	header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+	header('Access-Control-Allow-Headers: X-Experience-API-Version,Accept,Authorization,Etag,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With');
+	header('Access-Control-Max-Age: 600');
 	exit;
 }
 
@@ -74,6 +80,11 @@ try {
 		//ilLoggerFactory::getLogger('root')->write("XapiCmi5Plugin: 401 Unauthorized for token");
 		$dic->logger()->root()->log("XapiCmi5Plugin: 401 Unauthorized for token");
 		header('HTTP/1.1 401 Unauthorized');
+		header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+		header('Access-Control-Allow-Credentials: true');
+		header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+		header('Access-Control-Allow-Headers: X-Experience-API-Version,Accept,Authorization,Etag,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With');
+        	header('Access-Control-Max-Age: 600');
 		exit;
 	}
 }
@@ -82,6 +93,11 @@ catch(Exception $e)
 	//ilLoggerFactory::getLogger('root')->write("XapiCmi5Plugin: " . $e->getMessage());
 	$dic->logger()->root()->log("XapiCmi5Plugin: " . $e->getMessage());
 	header('HTTP/1.1 401 Unauthorized');
+        header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+        header('Access-Control-Allow-Headers: X-Experience-API-Version,Accept,Authorization,Etag,Cache-Control,Content-Type,DNT,If-Modified-Since,Keep-Alive,Origin,User-Agent,X-Mx-ReqToken,X-Requested-With');
+        header('Access-Control-Max-Age: 600');
 	exit;
 }
 
