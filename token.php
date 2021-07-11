@@ -31,6 +31,8 @@ $res = array("auth-token" => $token);
 //$token = base64_encode('isam:hdgtezdhztcghdzehdzusuejdzsuhtdh');
 //$res = array("auth-token" => $token);
 
+header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+header('Access-Control-Allow-Credentials: true');
 header('Content-type:application/json;charset=utf-8');
 echo json_encode($res);
 ?>

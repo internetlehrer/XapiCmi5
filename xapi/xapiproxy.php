@@ -287,7 +287,8 @@ function handleProxy(ServerRequestInterface $request, $fakePostBody = NULL) {
 	
 	$req_opts = array(
 		RequestOptions::VERIFY => false,
-		RequestOptions::CONNECT_TIMEOUT => 5
+		RequestOptions::CONNECT_TIMEOUT => 5,
+		RequestOptions::HTTP_ERRORS => false
 	);
 	$full_uri = $request->getUri();
 	$serverParams = $request->getServerParams();
@@ -486,7 +487,7 @@ function checkResponse($response, $endpoint) {
 	global $log, $lrsType;
 	if ($response['state'] === 'fulfilled') {
 		$status = $response['value']->getStatusCode();
-		if ($status === 200 || $status === 204) {
+		if ($status === 200 || $status === 204 || $status === 404) {
 			return true;
 		}
 		else {
