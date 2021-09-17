@@ -376,6 +376,8 @@ function handleProxy(ServerRequestInterface $request, $fakePostBody = NULL) {
 	else {
 		$log->warning($lrsType->getLogMessage("Wrong command parts!"));
 		header("HTTP/1.1 412 Wrong Request Parameter");
+		header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+		header('Access-Control-Allow-Credentials: true');
 		echo "HTTP/1.1 412 Wrong Request Parameter";
 		exit;
 	}
@@ -504,12 +506,16 @@ function checkResponse($response, $endpoint) {
 
 function exitResponseError() {
 	header("HTTP/1.1 412 Wrong Response");
+	header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+	header('Access-Control-Allow-Credentials: true');
 	echo "HTTP/1.1 412 Wrong Response";
 	exit;
 }
 
 function exitProxyError() {
 	header("HTTP/1.1 500 XapiProxy Error (Ask For Logs)");
+	header('Access-Control-Allow-Origin: '.$_SERVER["HTTP_ORIGIN"]);
+	header('Access-Control-Allow-Credentials: true');
 	echo "HTTP/1.1 500 XapiProxy Error (Ask For Logs)";
 	exit;
 }
