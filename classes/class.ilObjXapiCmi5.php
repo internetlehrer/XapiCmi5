@@ -50,7 +50,11 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	protected $context = null;
 	protected $lp_mode = self::LP_INACTIVE;
 	protected $lp_threshold = 0.5;
-	protected $show_debug = 0;
+    /**
+     * @var bool
+     */
+    protected $statementsReportEnabled;
+    
 	protected $use_fetch = 0;
 	protected $open_mode = 0;
 	protected $privacy_ident = ilXapiCmi5Type::PRIVACY_IDENT_EMAIL;
@@ -183,6 +187,14 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 		return $typedef->getName();
 	}
 
+    /**
+	 * Get LrsType
+	 */
+	public function getLrsType() {
+		$typedef = new ilXapiCmi5Type($this->getTypeId());
+		return $typedef;
+    }
+    
 	/**
 	 * Set vailability type
 	 *
@@ -283,16 +295,23 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 		return $this->launch_secret;
 	}
 
-	public function setShowDebug($a_show_debug) {
-		if ($a_show_debug == null) $a_show_debug = 0;
-		$this->show_debug = $a_show_debug;
-	}
-	
-	public function getShowDebug() {
-		return $this->show_debug;
-	}
-	
-
+    /**
+     * @return bool
+     */
+    public function isStatementsReportEnabled()
+    {
+        return $this->statementsReportEnabled;
+    }
+    
+    /**
+     * @param bool $statementsReportEnabled
+     */
+    public function setStatementsReportEnabled($statementsReportEnabled)
+    {
+        if ($statementsReportEnabled == null) $statementsReportEnabled = 0;
+        $this->statementsReportEnabled = $statementsReportEnabled;
+    }
+    
 	public function setUseFetch($a_use_fetch) {
 		if ($a_use_fetch == null) $a_use_fetch = 0;
 		$this->use_fetch = $a_use_fetch;
@@ -693,7 +712,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 				//'width' => array('integer', $this->getWidth()),
 				'width' => array('integer', 950),
 				'height' => array('integer', 650),
-				'show_debug' => array('integer', $this->getShowDebug()),
+				'show_statements' => array('integer', (int) $this->isStatementsReportEnabled()),
 				'privacy_comment' => array('text', null),
 				'version' => array('integer', 1),
 				'use_fetch' => array('integer', $this->getUseFetch()),
@@ -800,7 +819,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 			$this->setMetaDataXML($row->meta_data_xml);
 			$this->setLaunchUrl($row->launch_url);
 			$this->setActivityId($row->activity_id);
-			$this->setShowDebug($row->show_debug);
+			$this->setStatementsReportEnabled($row->show_statements);
 			$this->setUseFetch($row->use_fetch);
 			$this->setOpenMode($row->open_mode);
 			$this->setPrivacyIdent($row->privacy_ident);
@@ -821,7 +840,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 			$this->setTimestamp((bool)$row->c_timestamp);
 			$this->setDuration((bool)$row->duration);
 			$this->setNoSubstatements((bool)$row->no_substatements);
-			$this->user_object_uid = $this->readUserObjectUniqueId();
+			// $this->user_object_uid = $this->readUserObjectUniqueId();
 		}
 	}
 
@@ -839,7 +858,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 			// 'meta_data_xml' => array('text', $this->getMetaDataXML()),
 			'launch_url' => array('text', $this->getLaunchUrl()),
 			'activity_id' => array('text', $this->getActivityId()),
-			'show_debug' => array('integer', $this->getShowDebug()),
+			'show_statements' => array('integer', (int) $this->isStatementsReportEnabled()),
 			'use_fetch' => array('integer', $this->getUseFetch()),
 			'open_mode' => array('integer', $this->getOpenMode()),
 			'privacy_ident' => array('integer', $this->getPrivacyIdent()),
@@ -1073,72 +1092,69 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	 * @param int $length
 	 * @return string
 	 */
-	public function generateUserObjectUniqueId( $length = 32 )
-	{
+	// public function generateUserObjectUniqueId( $length = 32 )
+	// {
+		// if( (bool)strlen($this->user_object_uid) ) {
+			// return $this->user_object_uid;
+		// }
 
-		if( (bool)strlen($this->user_object_uid) ) {
-			return $this->user_object_uid;
-		}
+		// $getId = function( $length ) {
+			// $multiplier = floor($length/8) * 2;
+			// $uid = str_shuffle(str_repeat(uniqid(), $multiplier));
 
-		$getId = function( $length ) {
-			$multiplier = floor($length/8) * 2;
-			$uid = str_shuffle(str_repeat(uniqid(), $multiplier));
+			// try {
+				// $ident = bin2hex(random_bytes($length));
+			// } catch (Exception $e) {
+				// $ident = $uid;
+			// }
 
-			try {
-				$ident = bin2hex(random_bytes($length));
-			} catch (Exception $e) {
-				$ident = $uid;
-			}
+			// $start = rand(0, strlen($ident) - $length - 1);
+			// return substr($ident, $start, $length);
+		// };
 
-			$start = rand(0, strlen($ident) - $length - 1);
-			return substr($ident, $start, $length);
-		};
+		// $id = $getId($length);
 
-		$id = $getId($length);
+		// $exists = $this->userObjectUniqueIdExists($id);
 
-		$exists = $this->userObjectUniqueIdExists($id);
+		// while( $exists ) {
+			// $id = $getId($length);
+			// $exists = $this->userObjectUniqueIdExists($id);
+		// }
 
-		while( $exists ) {
-			$id = $getId($length);
-			$exists = $this->userObjectUniqueIdExists($id);
-		}
+		// return $id;
 
-		$this->insertUserObjectUniqueId($id);
+	// }
 
-		return $id;
+	// private function readUserObjectUniqueId()
+	// {
+		// global $DIC; /** @var Container */
 
-	}
+		// $query = "SELECT uuid FROM xxcf_usrobjuuid_map".
+				// " WHERE usr_id = " . $DIC->user()->getId() .
+				// " AND obj_id = " . $DIC->database()->quote($this->getId(), 'integer');
+		// $result = $DIC->database()->query($query);
+		// return is_array($row = $DIC->database()->fetchAssoc($result)) ? $row['uuid'] : '';
+	// }
 
-	private function readUserObjectUniqueId()
-	{
-		global $DIC; /** @var Container */
+	// private function userObjectUniqueIdExists($id)
+	// {
+		// global $DIC; /** @var Container */
 
-		$query = "SELECT uuid FROM xxcf_usrobjuuid_map".
-				" WHERE usr_id = " . $DIC->user()->getId() .
-				" AND obj_id = " . $DIC->database()->quote($this->getId(), 'integer');
-		$result = $DIC->database()->query($query);
-		return is_array($row = $DIC->database()->fetchAssoc($result)) ? $row['uuid'] : '';
-	}
+		// $query = "SELECT uuid FROM xxcf_usrobjuuid_map WHERE uuid = " . $DIC->database()->quote($id, 'text');
+		// $result = $DIC->database()->query($query);
+		// return (bool)$num = $DIC->database()->numRows($result);
+	// }
 
-	private function userObjectUniqueIdExists($id)
-	{
-		global $DIC; /** @var Container */
+	// private function insertUserObjectUniqueId($ident)
+	// {
+		// global $DIC; /** @var Container */
 
-		$query = "SELECT uuid FROM xxcf_usrobjuuid_map WHERE uuid = " . $DIC->database()->quote($id, 'text');
-		$result = $DIC->database()->query($query);
-		return (bool)$num = $DIC->database()->numRows($result);
-	}
-
-	private function insertUserObjectUniqueId($ident)
-	{
-		global $DIC; /** @var Container */
-
-		return (bool)$DIC->database()->insert('xxcf_usrobjuuid_map', [
-			'usr_id'	=> ['integer', $DIC->user()->getId()],
-			'obj_id'	=> ['integer', $this->getId()],
-			'uuid'	=> ['text', $ident]
-		]);
-	}
+		// return (bool)$DIC->database()->insert('xxcf_usrobjuuid_map', [
+			// 'usr_id'	=> ['integer', $DIC->user()->getId()],
+			// 'obj_id'	=> ['integer', $this->getId()],
+			// 'uuid'	=> ['text', $ident]
+		// ]);
+	// }
 
 }
 

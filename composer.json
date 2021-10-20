@@ -1,0 +1,43 @@
+{
+  "name": "internetlehrer-gmbh/xapicmi5",
+  "description": "ILIAS XapiCmi5 plugin",
+  "type": "project",
+  "keywords": [
+    "ILIAS",
+    "Plugin",
+    "xapi",
+    "cmi5"
+  ],
+  "license": "GPL-3.0+",
+  "authors": [
+    {
+      "name": "Uwe Kohnle",
+      "email": "support@internetlehrer-gmbh.de",
+      "homepage": "https://internetlehrer-gmbh.de",
+      "role": "Project Manager, Software Engineer"
+    }
+  ],
+  "support": {
+    "issues": "https://internetlehrer-gmbh.de"
+  },
+  "minimum-stability": "beta",
+  "prefer-stable": true,
+  "require": {
+    "php": ">=7.2",
+  },
+  "autoload": {
+    "exclude-from-classmap": ["./lib/"],
+    "classmap": [
+      "./classes/",
+      "./xapi/"
+    ]
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "classmap-authoritative": true
+  },
+  "scripts": {
+
+  }
+}

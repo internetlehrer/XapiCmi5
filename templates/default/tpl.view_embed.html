@@ -7,7 +7,8 @@
 function Config() {
     "use strict";
 }
-Config.endpoint = '{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapi/xapiproxy.php';
+Config.endpoint = '{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapiproxy.php';
+//Config.endpoint = '{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapi/xapiproxy.php';
 Config.actor = { "mbox":"{XAPI_USER_ID}", "name":"{XAPI_USER_NAME}" };
 Config.activityId = '{XAPI_ACTIVITY_ID}';
 Config.registration = '{XAPI_REGISTRATION}';
@@ -17,7 +18,7 @@ var open_mode_iframe = {OPEN_MODE_IFRAME};
 function launchxapi() {
 <!-- BEGIN fetch -->
 	//var vlink = '&fetch=' + encodeURIComponent('{ILIAS_URL}/create_token.php');
-	var vlink = '&fetch=' + encodeURIComponent('{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/token.php?ref_id={REF_ID}&sess={SESSION}');
+	var vlink = '&fetch=' + encodeURIComponent('{ILIAS_URL}/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapitoken.php?ref_id={REF_ID}&sess={SESSION}');
 <!-- END fetch -->
 <!-- BEGIN no_fetch -->
 	var auth = 'Basic ' + Base64.encode('{LAUNCH_KEY}' + ':' + '{LAUNCH_SECRET}');
@@ -47,17 +48,3 @@ if (open_mode_iframe == 1) {
 
 </script>
 
-<!-- BEGIN debug_embed -->
-<script type="text/javascript">
-function ConfigLRS() {
-    "use strict";
-}
-ConfigLRS.endpoint = '{LRS_ENDPOINT}';
-ConfigLRS.authUser = '{LRS_KEY}';
-ConfigLRS.authPassword = '{LRS_SECRET}';
-ConfigLRS.actor = { "mbox":"{LRS_USER_ID}", "name":"{LRS_USER_NAME}" }; 
-</script> 
-<iframe name="XAPIDebugFrame" id="XAPIDebugFrame" 
-	src="./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapi/StatementViewer/index.html" 
-	width="1000" height="600" scrolling="auto" frameborder="0" transparency></iframe>
-<!-- END debug_embed -->

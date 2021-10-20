@@ -62,7 +62,7 @@ class ilXapiCmi5Importer extends ilXmlImporter {
 			$entity->setUseFetch((string) $xml->use_fetch);
 			$entity->setPrivacyIdent((string) $xml->privacy_ident);
 			$entity->setPrivacyName((string) $xml->privacy_name);
-			$entity->setShowDebug((string) $xml->show_debug);
+			$entity->setStatementsReportEnabled((int) $xml->show_statements);
 			$entity->setLPMode((string) $xml->lp_mode);
 			$entity->setLPThreshold((string) $xml->lp_threshold);
 			$entity->setOnlyMoveon((int) $xml->only_moveon);

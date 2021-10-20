@@ -33,6 +33,12 @@ class ilXapiCmi5Type
 	const ENDPOINT_USE_1FALLBACK_2DEFAULT = '1fallback_2default';
 	const ENDPOINT_USE_2 = '2only';
 
+    const ENDPOINT_STATEMENTS_SUFFIX = 'statements';
+    const ENDPOINT_AGGREGATE_SUFFIX = 'statements/aggregate';
+    const ENDPOINT_DELETE_SUFFIX = 'v2/batchdelete/initialise';
+    const ENDPOINT_BATCH_SUFFIX ='connection/batchdelete';
+    const ENDPOINT_STATE_SUFFIX = 'state';
+
 	const LOG_COMPONENT = "XapiCmi5Plugin";
 	const LOG_LEVEL_OFF = 0;
 	const LOG_LEVEL_ERROR_AND_WARNING = 1;
@@ -470,6 +476,14 @@ class ilXapiCmi5Type
 		}
 	}
 
+    public function getDefaultBasicAuth() {
+        return 'Basic ' . base64_encode($this->getDefaultLrsKey() . ':' . $this->getDefaultLrsSecret());
+    }
+
+    public function getFallbackBasicAuth() {
+        return 'Basic ' . base64_encode($this->getFallbackLrsKey() . ':' . $this->getFallbackLrsSecret());
+    }
+
 	public function setPrivacyIdent($a_option)
 	{
 		$this->privacy_ident = $a_option;
@@ -895,8 +909,45 @@ class ilXapiCmi5Type
 		return true;
 	}
 
-	
+	public function getDefaultLrsEndpointStatementsAggregationLink()
+    {
+        return dirname(dirname($this->getDefaultLrsEndpoint())) . '/api/' . self::ENDPOINT_AGGREGATE_SUFFIX;
+    }
 
+    public function getFallbackLrsEndpointStatementsAggregationLink()
+    {
+        return dirname(dirname($this->getFallbackLrsEndpoint())) . '/api/' . self::ENDPOINT_AGGREGATE_SUFFIX;
+    }
+
+    public function getDefaultLrsEndpointDeleteLink()
+    {
+        return dirname(dirname($this->getDefaultLrsEndpoint())) . '/api/' . self::ENDPOINT_DELETE_SUFFIX;
+    }
+
+    public function getFallbackLrsEndpointDeleteLink()
+    {
+        return dirname(dirname($this->getFallbackLrsEndpoint())) . '/api/' . self::ENDPOINT_DELETE_SUFFIX;
+    }
+
+    public function getDefaultLrsEndpointBatchLink()
+    {
+        return dirname(dirname($this->getDefaultLrsEndpoint())) . '/api/' . self::ENDPOINT_BATCH_SUFFIX;
+    }
+
+    public function getFallbackLrsEndpointBatchLink()
+    {
+        return dirname(dirname($this->getFallbackLrsEndpoint())) . '/api/' . self::ENDPOINT_BATCH_SUFFIX;
+    }
+
+    public function getDefaultLrsEndpointStateLink()
+    {
+        return $this->getDefaultLrsEndpoint() . '/activities/' . self::ENDPOINT_STATE_SUFFIX;
+    }
+
+    public function getFallbackLrsEndpointStateLink()
+    {
+        return $this->getFallbackLrsEndpoint() . '/activities/' . self::ENDPOINT_STATE_SUFFIX;
+    }
 	/**
 	 * get a language text
 	 *

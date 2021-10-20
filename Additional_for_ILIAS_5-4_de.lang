@@ -1,0 +1,37 @@
+// The language file starts beyond the HTML-comment below. DO NOT modify this line!
+// To edit your language file with a spreadsheet (i.e. Excel or StarCalc) remove all lines
+// from the first line to the HTML-comment. After editing paste the lines in place again.
+// NOTICE: Character coding of all ILIAS lang files is UTF-8! Please set your editor
+// to the corresponding mode!
+<!-- language file start -->
+cmix#:#tbl_statements_date#:#Datum
+cmix#:#tbl_statements_actor#:#Benutzer
+cmix#:#tbl_statements_verb#:#Verb
+cmix#:#tbl_statements_object#:#Objekt
+cmix#:#tbl_action_raw_data#:#Rohdaten anzeigen
+cmix#:#cmix_all_verbs#:#Alle Verben
+cmix#:#cmix_adlnetgov_expapi_verbs_answered#:#Answered
+cmix#:#cmix_adlnetgov_expapi_verbs_asked#:#Asked
+cmix#:#cmix_adlnetgov_expapi_verbs_attempted#:#Attempted
+cmix#:#cmix_adlnetgov_expapi_verbs_attended#:#Attended
+cmix#:#cmix_adlnetgov_expapi_verbs_commented#:#Commented
+cmix#:#cmix_adlnetgov_expapi_verbs_completed#:#Completed
+cmix#:#cmix_adlnetgov_expapi_verbs_exited#:#Exited
+cmix#:#cmix_adlnetgov_expapi_verbs_experienced#:#Experienced
+cmix#:#cmix_adlnetgov_expapi_verbs_failed#:#Failed
+cmix#:#cmix_adlnetgov_expapi_verbs_imported#:#Imported
+cmix#:#cmix_adlnetgov_expapi_verbs_initialized#:#Initialized
+cmix#:#cmix_adlnetgov_expapi_verbs_interacted#:#Interacted
+cmix#:#cmix_adlnetgov_expapi_verbs_launched#:#Launched
+cmix#:#cmix_adlnetgov_expapi_verbs_mastered#:#Mastered
+cmix#:#cmix_adlnetgov_expapi_verbs_passed#:#Passed
+cmix#:#cmix_adlnetgov_expapi_verbs_preferred#:#Preferred
+cmix#:#cmix_adlnetgov_expapi_verbs_progressed#:#Progressed
+cmix#:#cmix_adlnetgov_expapi_verbs_registered#:#Registered
+cmix#:#cmix_adlnetgov_expapi_verbs_responded#:#Responded
+cmix#:#cmix_adlnetgov_expapi_verbs_resumed#:#Resumed
+cmix#:#cmix_adlnetgov_expapi_verbs_scored#:#Scored
+cmix#:#cmix_adlnetgov_expapi_verbs_shared#:#Shared
+cmix#:#cmix_adlnetgov_expapi_verbs_suspended#:#Suspended
+cmix#:#cmix_adlnetgov_expapi_verbs_terminated#:#Terminated
+cmix#:#cmix_adlnetgov_expapi_verbs_voided#:#Voided

@@ -44,6 +44,11 @@ When you download the Plugin as ZIP file from GitHub, please rename the extracte
 4. Choose action  "Activate" for the XapiCmi5 plugin
 
 
+If you use ILIAS 5.4 you should import the additional lang files:
+.../XapiCmi5/Additional_for_ILIAS_5-4_de.lang for german
+.../XapiCmi5/Additional_for_ILIAS_5-4_en.lang for english
+
+
 Version History
 ===============
 

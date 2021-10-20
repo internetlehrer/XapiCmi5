@@ -114,7 +114,37 @@ class ilObjXapiCmi5Access extends ilObjectPluginAccess
 		}
 		
 		return self::$settings_cache[$a_obj_id];
-	}
-} 
+    }
+    
+    public static function hasOutcomesAccess($object) {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        $outcomesAccess = $DIC->access()->checkAccess(
+            'read_outcomes',
+            '',
+            $object->getRefId(),
+            $object->getType(),
+            $object->getId()
+        );
+        if ($outcomesAccess) {
+            return true;
+        }
+        return false;
+    }
+
+    public static function hasDeleteXapiDataAccess($object) {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        $deleteAccess = $DIC->access()->checkAccess(
+            'delete_xapi_data',
+            '',
+            $object->getRefId(),
+            $object->getType(),
+            $object->getId()
+        );
+        if ($deleteAccess) {
+            return true;
+        }
+        return false;
+    }
+}
 
 ?>

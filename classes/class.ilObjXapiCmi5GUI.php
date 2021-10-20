@@ -7,9 +7,10 @@
 use ILIAS\DI\Container;
 
 include_once('./Services/Repository/classes/class.ilObjectPluginGUI.php');
+include_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5Exception.php');
+include_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilObjXapiCmi5Access.php');
 include_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilObjXapiCmi5.php');
 include_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5Type.php');
-
 
 /**
  * xApi plugin: repository object GUI
@@ -65,6 +66,10 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         return $this->object->getTitle();
     }
 
+    public function getText($txt)
+    {
+        return $this->txt($txt);
+    }
     /**
      * After object has been created -> jump to this command
      */
@@ -110,19 +115,37 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
     public function performCommand($cmd)
     {
     	global $ilErr, $ilCtrl, $ilTabs;
-
+        //$GLOBALS['DIC']->logger()->root()->log("COMMAND: " . $cmd);
         switch ($cmd)
         {
         	case "edit":
         	case "update":
-			case "showExport":
+            case "showExport":
         		$this->checkPermission("write");
             	// $this->setSubTabs("edit");
             	
                 $cmd .= "Object";
                 $this->$cmd();
                 break;
-
+            case "statements":
+            case "show":
+            case "applyFilter":
+            case "asyncUserAutocomplete":
+            case "resetFilter":
+                $this->checkPermission("read");
+                $this->statementsView($cmd);
+                break;
+            case "deleteAllData":
+            case "asyncDelete":
+            case "deleteFilteredData":
+                $this->checkPermission("read");
+                if (ilObjXapiCmi5Access::hasDeleteXapiDataAccess($this->object)) {
+                    $this->statementsView($cmd);
+                }
+                else {
+                    throw new ilXapiCmi5Exception('access denied!');
+                }
+                break;
             case "editLPSettings":
                 $this->checkPermission("edit_learning_progress");
                 // $this->setSubTabs("learning_progress");
@@ -168,8 +191,18 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 				}
         }
     }
-	
-	
+    
+    /*
+    public function hasStatementsAccess() {
+        if ($this->checkPermissionBool('write')) {
+            return true;
+        }
+        if (ilObjXapiCmi5Access::hasOutcomesAccess($this->object)) {
+            return true;
+        }
+        return false;
+    }
+	*/
     /**
      * Set tabs
      */
@@ -193,13 +226,17 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         //  info screen tab
         $ilTabs->addTab("infoScreen", $this->lng->txt("info_short"), $ilCtrl->getLinkTarget($this, "infoScreen"));
 
+        if ($this->object->isStatementsReportEnabled()) { // ToDo: see in core "hasStatementsAccess"
+            $ilTabs->addTab("tab_statements", $this->getText('tab_statements'), $ilCtrl->getLinkTarget($this,'statements'));
+        }
         // add "edit" tab
+        
         if ($this->checkPermissionBool("write"))
         {
             $ilTabs->addTab("edit", $this->lng->txt("settings"), $ilCtrl->getLinkTarget($this, "edit"));
 			$ilTabs->addTab("export", $this->lng->txt("export"), $ilCtrl->getLinkTargetByClass("ilexportgui", ""));
         }
-
+        
         include_once("Services/Tracking/classes/class.ilObjUserTracking.php");
         if (ilObjUserTracking::_enabledLearningProgress() && ($this->checkPermissionBool("edit_learning_progress") || $this->checkPermissionBool("read_learning_progress")))
         {
@@ -337,53 +374,19 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         global $tpl, $ilErr, $ilUser, $DIC;
 		$token = $this->object->fillToken();
         $this->object->trackAccess();
-        $privacy_ident = "";
+        $user_ident = "";
 	    $activityId = $this->object->getActivityId();
-	    $registration = $this->getRegistration();
-        switch ($this->object->getPrivacyIdent()) {
-			case ilXapiCmi5Type::PRIVACY_IDENT_CODE :
-				$iliasDomain = substr(ILIAS_HTTP_PATH,7);
-				if (substr($iliasDomain,0,1) == "\/") $iliasDomain = substr($iliasDomain,1);
-				if (substr($iliasDomain,0,4) == "www.") $iliasDomain = substr($iliasDomain,4);
-				$privacy_ident = ''.$ilUser->getId().'_'.str_replace('/','_',$iliasDomain).'_'.CLIENT_ID.'@iliassecretuser.de';
-				break;
-			case ilXapiCmi5Type::PRIVACY_IDENT_NUMERIC :
-				$privacy_ident = $ilUser->getId().'@iliassecretuser.de';
-				break;
-			case ilXapiCmi5Type::PRIVACY_IDENT_LOGIN :
-				$privacy_ident = $ilUser->getLogin();
-				break;
-			case ilXapiCmi5Type::PRIVACY_IDENT_EMAIL :
-				$privacy_ident = $ilUser->getEmail();
-				break;
-			case ilXapiCmi5Type::PRIVACY_IDENT_RANDOM :
-				$iliasDomain = "";
-				if (IL_INST_ID == 0) {
-					$iliasDomain = substr(ILIAS_HTTP_PATH,7);
-					if (substr($iliasDomain,0,1) == "\/") $iliasDomain = substr($iliasDomain,1);
-					if (substr($iliasDomain,0,4) == "www.") $iliasDomain = substr($iliasDomain,4);
-					$iliasDomain = '_' . str_replace('/','_',$iliasDomain).'_'.CLIENT_ID;
-				}
-				$privacy_ident = IL_INST_ID . '_' . $this->object->generateUserObjectUniqueId() . $iliasDomain . '@iliassecretuser.de';
-				break;
-			default :
-				$privacy_ident = $ilUser->getEmail();
-        }
-		$privacy_name = "";
-		switch ($this->object->getPrivacyName()) {
-			case 0 :
-				$privacy_name = "";
-				break;
-			case 1 :
-				$privacy_name = $ilUser->getFirstname();
-				break;
-			case 2 :
-				$privacy_name = $this->lng->txt("salutation_".$ilUser->getGender()) .' '. $ilUser->getLastname();
-				break;
-			default :
-				$privacy_name = $ilUser->getFullname();;
+        $registration = $this->getRegistration();
+		//see initCmixUser()
+		require_once __DIR__.'/class.ilXapiCmi5User.php';
+		$cmixUser = new ilXapiCmi5User($this->object->getId(), $DIC->user()->getId(),$this->object->getPrivacyIdent());
+		$user_ident = $cmixUser->getUsrIdent();
+		if ($user_ident == '' || $user_ident == null) {
+			$user_ident = ilXapiCmi5User::getIdent($this->object->getPrivacyIdent(), $ilUser);
+			$cmixUser->setUsrIdent($user_ident);
+			$cmixUser->save();
 		}
-		
+		$privacy_name = ilXapiCmi5User::getNamePlugin($this->object->getPrivacyName(), $ilUser);
 		
         $this->tabs_gui->activateTab('viewEmbed');
 		$my_tpl = new ilTemplate('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/templates/default/tpl.view_embed.html', true, true);
@@ -404,19 +407,8 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 			$my_tpl->parseCurrentBlock();
 		}
 
-		if ($this->object->getShowDebug() == true) {
-			$my_tpl->setCurrentBlock("debug_embed");
-			$my_tpl->setVariable('ILIAS_URL', ILIAS_HTTP_PATH);
-			$my_tpl->setVariable('LRS_ENDPOINT', $this->object->typedef->getDefaultLrsEndpoint());
-			$my_tpl->setVariable('LRS_KEY', $this->object->typedef->getDefaultLrsKey());
-			$my_tpl->setVariable('LRS_SECRET', $this->object->typedef->getDefaultLrsSecret());
-			$my_tpl->setVariable('LRS_USER_ID', $privacy_ident); 
-			$my_tpl->setVariable('LRS_USER_NAME', $privacy_name);
-			$my_tpl->parseCurrentBlock();
-		}
-
 		$my_tpl->setVariable('ILIAS_URL', ILIAS_HTTP_PATH);
-        $my_tpl->setVariable('XAPI_USER_ID', $privacy_ident); 
+        $my_tpl->setVariable('XAPI_USER_ID', $user_ident); 
         $my_tpl->setVariable('XAPI_USER_NAME', $privacy_name);
         $my_tpl->setVariable('XAPI_ACTIVITY_ID', $activityId);
         $my_tpl->setVariable('XAPI_REGISTRATION', $registration);
@@ -471,6 +463,23 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
         $this->ctrl->returnToParent($this);
     }
 
+    /**
+     * Edit object
+     *
+     * @access protected
+     */
+    public function statementsView($cmd)
+    {
+        require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5StatementsGUI.php');
+        $gui = new ilXapiCmi5StatementsGUI($this); // beware this is the current GUI Class
+        if ($cmd !== "asyncUserAutocomplete" && $cmd !== "asyncDelete") {
+            $this->tabs_gui->activateTab('statements');
+            $this->tpl->setContent($gui->executeCommand());
+        }
+        else {
+            $gui->executeCommand();
+        }
+    }
 
     /**
      * Edit object
@@ -806,10 +815,10 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 		$item->setTitle($this->txt("log_options"));
 		$this->form->addItem($item);
 
-		$item = new ilCheckboxInputGUI($this->txt('show_debug'), 'show_debug');
-		$item->setInfo($this->txt("show_debug_info"));
+		$item = new ilCheckboxInputGUI($this->txt('show_statements'), 'show_statements');
+		$item->setInfo($this->txt("show_statements_info"));
 		$item->setValue("1");
-		if ($a_values['show_debug'])
+		if ($a_values['show_statements'])
 		{
 			$item->setChecked(true);
 		}        
@@ -845,7 +854,7 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 		$values['activity_id'] = $this->object->getActivityId();
 		// $values['launch_key'] = $this->object->getLaunchKey();
 		// $values['launch_secret'] = $this->object->getLaunchSecret();
-		$values['show_debug'] = $this->object->getShowDebug();
+		$values['show_statements'] = $this->object->isStatementsReportEnabled();
 		$values['use_fetch'] = $this->object->getUseFetch();
 		$values['open_mode_iframe'] = $this->object->getOpenMode();
 		$values['privacy_ident'] = $this->object->getPrivacyIdent();
@@ -890,7 +899,7 @@ class ilObjXapiCmi5GUI extends ilObjectPluginGUI
 		$this->object->setActivityId($this->form->getInput("activity_id"));
 		// $this->object->setLaunchKey($this->form->getInput("launch_key"));
 		// $this->object->setLaunchSecret($this->form->getInput("launch_secret"));
-		$this->object->setShowDebug($this->form->getInput("show_debug"));
+		$this->object->setStatementsReportEnabled($this->form->getInput("show_statements"));
 		$this->object->setUseFetch($this->form->getInput("use_fetch"));
 		$this->object->setOpenMode($this->form->getInput("open_mode_iframe"));
 		if ($this->object->typedef->getForcePrivacySettings() == false) {

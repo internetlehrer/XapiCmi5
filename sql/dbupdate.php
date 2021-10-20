@@ -902,33 +902,165 @@ if($ilDB->tableExists('xxcf_data_types'))
     }
 }
 ?>
+<#21>
+<?php
+// deleted
+?>
+<#22>
+<?php
 
+if (!$ilDB->tableExists('xxcf_users')) {
+    $ilDB->createTable('xxcf_users', array(
+        'obj_id' => array(
+            'type' => 'integer',
+            'length' => 4,
+            'notnull' => true,
+            'default' => 0
+        ),
+        'usr_id' => array(
+            'type' => 'integer',
+            'length' => 4,
+            'notnull' => true,
+            'default' => 0
+        ),
+		'privacy_ident' => array(
+			'type' => 'integer',
+			'length' => 2,
+			'notnull' => true,
+			'default' => 0
+		),
+        'usr_ident' => array(
+            'type' => 'text',
+            'length' => 255,
+            'notnull' => false
+        )
+    ));
+    
+    $ilDB->addPrimaryKey('xxcf_users', array('obj_id', 'usr_id', 'privacy_ident'));
+}
+?>
+<#23>
+<?php
+$iliasDomain = "";
+if (IL_INST_ID == 0) {
+	$iliasDomain = substr(ILIAS_HTTP_PATH,7);
+	if (substr($iliasDomain,0,1) == "\/") $iliasDomain = substr($iliasDomain,1);
+	if (substr($iliasDomain,0,4) == "www.") $iliasDomain = substr($iliasDomain,4);
+	$iliasDomain = '_' . str_replace('/','_',$iliasDomain).'_'.CLIENT_ID;
+}
 
+$set = $ilDB->query("SELECT * FROM xxcf_usrobjuuid_map");
+while ($row = $ilDB->fetchAssoc($set)) {
+	$ident = IL_INST_ID . '_' . $row['uuid'] . $iliasDomain . '@iliassecretuser.de';
+	$ilDB->insert('xxcf_users', array(
+		'obj_id' => array('integer', $row['obj_id']),
+		'usr_id' => array('integer', $row['usr_id']),
+		'privacy_ident' => array('integer', 4),
+		'usr_ident' => array('text', $ident)
+		)
+	);
+}
 
+$set = $ilDB->query("SELECT count(*) cnt FROM xxcf_usrobjuuid_map");
+$row = $ilDB->fetchAssoc($set);
+$counter_uuid = $row['cnt'];
 
+$set = $ilDB->query("SELECT count(*) cnt FROM xxcf_users");
+$row = $ilDB->fetchAssoc($set);
+$counter_users = $row['cnt'];
 
+if ($counter_uuid == $counter_users) {
+	$ilDB->dropTable("xxcf_usrobjuuid_map");
+} else {
+	die("migration of users with uuid not successful");
+}
+?>
+<#24>
+<?php
+// PRIVACY_IDENT_EMAIL = 3;
+$set = $ilDB->query("SELECT ut_lp_marks.obj_id, ut_lp_marks.usr_id, usr_data.email "
+."FROM ut_lp_marks, usr_data, xxcf_data_settings "
+."WHERE xxcf_data_settings.privacy_ident=3 "
+."AND ut_lp_marks.obj_id = xxcf_data_settings.obj_id "
+."AND usr_data.usr_id = ut_lp_marks.usr_id");
 
+while ($row = $ilDB->fetchAssoc($set)) {
+	$ilDB->insert('xxcf_users', array(
+		'obj_id' => array('integer', $row['obj_id']),
+		'usr_id' => array('integer', $row['usr_id']),
+		'privacy_ident' => array('integer', 3),
+		'usr_ident' => array('text', $row['email'])
+		)
+	);
+}
+?>
+<#25>
+<?php
+// PRIVACY_IDENT_LOGIN = 2;
+$set = $ilDB->query("SELECT ut_lp_marks.obj_id, ut_lp_marks.usr_id, usr_data.login "
+."FROM ut_lp_marks, usr_data, xxcf_data_settings "
+."WHERE xxcf_data_settings.privacy_ident=2 "
+."AND ut_lp_marks.obj_id = xxcf_data_settings.obj_id "
+."AND usr_data.usr_id = ut_lp_marks.usr_id");
 
+while ($row = $ilDB->fetchAssoc($set)) {
+	$ilDB->insert('xxcf_users', array(
+		'obj_id' => array('integer', $row['obj_id']),
+		'usr_id' => array('integer', $row['usr_id']),
+		'privacy_ident' => array('integer', 2),
+		'usr_ident' => array('text', $row['login'])
+		)
+	);
+}
+?>
+<#26>
+<?php
+// PRIVACY_IDENT_NUMERIC = 1;
+$set = $ilDB->query("SELECT ut_lp_marks.obj_id, ut_lp_marks.usr_id "
+."FROM ut_lp_marks, xxcf_data_settings "
+."WHERE xxcf_data_settings.privacy_ident=1 "
+."AND ut_lp_marks.obj_id = xxcf_data_settings.obj_id");
 
+while ($row = $ilDB->fetchAssoc($set)) {
+	$ilDB->insert('xxcf_users', array(
+		'obj_id' => array('integer', $row['obj_id']),
+		'usr_id' => array('integer', $row['usr_id']),
+		'privacy_ident' => array('integer', 1),
+		'usr_ident' => array('text', ''.$row['usr_id'].'@iliassecretuser.de')
+		)
+	);
+}
+?>
+<#27>
+<?php
+// PRIVACY_IDENT_CODE = 0;
+$iliasDomain = substr(ILIAS_HTTP_PATH,7);
+if (substr($iliasDomain,0,1) == "\/") $iliasDomain = substr($iliasDomain,1);
+if (substr($iliasDomain,0,4) == "www.") $iliasDomain = substr($iliasDomain,4);
 
+$set = $ilDB->query("SELECT ut_lp_marks.obj_id, ut_lp_marks.usr_id "
+."FROM ut_lp_marks, xxcf_data_settings "
+."WHERE xxcf_data_settings.privacy_ident=0 "
+."AND ut_lp_marks.obj_id = xxcf_data_settings.obj_id");
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+while ($row = $ilDB->fetchAssoc($set)) {
+	$ident = ''.$row['usr_id'].'_'.str_replace('/','_',$iliasDomain).'_'.CLIENT_ID.'@iliassecretuser.de';
+	$ilDB->insert('xxcf_users', array(
+		'obj_id' => array('integer', $row['obj_id']),
+		'usr_id' => array('integer', $row['usr_id']),
+		'privacy_ident' => array('integer', 0),
+		'usr_ident' => array('text', $ident)
+		)
+	);
+}
+?>
+<#28>
+<?php
+if($ilDB->tableExists('xxcf_data_settings'))
+{
+    if ( $ilDB->tableColumnExists('xxcf_data_settings', 'show_debug') ) 
+    {
+        $ilDB->renameTableColumn('xxcf_data_settings', "show_debug", 'show_statements');
+    }
+}
+?>

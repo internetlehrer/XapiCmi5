@@ -40,7 +40,7 @@ class ilXapiCmi5Exporter extends ilXmlExporter {
 		$writer->xmlElement("use_fetch", null, $entity->getUseFetch());
 		$writer->xmlElement("privacy_ident", null, $entity->getPrivacyIdent());
 		$writer->xmlElement("privacy_name", null, $entity->getPrivacyName());
-		$writer->xmlElement("show_debug", null, $entity->getShowDebug());
+		$writer->xmlElement("show_statements", null, $entity->isStatementsReportEnabled());
 		$writer->xmlElement("lp_mode", null, $entity->getLPMode());
 		$writer->xmlElement("lp_threshold", null, $entity->getLPThreshold());
 		$writer->xmlElement("only_moveon", null, (int)$entity->getOnlyMoveon());

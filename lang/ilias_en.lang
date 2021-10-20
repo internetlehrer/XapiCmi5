@@ -292,3 +292,20 @@ conf_privacy_setting_default#:#Default Settings, changeable for Objects
 conf_privacy_setting_force#:#Settings are not changeable for Objects
 no_change_default_privacy_settings#:#Using this LRS-type settings are not changeable
 hints#:#Hints
+delete_all_data#:#Delete all Data
+delete_filtered_data#:#Delete filtered Data Selection
+delete_own_data#:#Delete own Data
+confirm_delete_all_data#:#Are you sure to delete ALL data?
+confirm_delete_filtered_data#:#Are you sure to delete filtered data selection?
+confirm_delete_own_data#:#Are you sure to delete your own data?
+title_delete_all_data#:#Delete all Data
+title_delete_filtered_data#:#Delete filtered Data
+title_delete_own_data#:#Delete own Data
+deleted_all_data#:#All Data deleted
+deleted_filtered_data#:#Deleted filtered Data Selection
+deleted_own_data#:#Deleted own Data
+statements_count#:#Statements count
+filtered_by#:#Filtered by
+show_statements#:#Display Learning Experiences
+show_statements_info#:#The Learning Experiences of other users could be displayed if the right 'XapiPlugin: View learning experiences of other users' is set.
+tab_statements#:#Learning Experiences

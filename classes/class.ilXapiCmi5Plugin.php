@@ -5,6 +5,7 @@
  */
 
 include_once('./Services/Repository/classes/class.ilRepositoryObjectPlugin.php');
+include_once('./Services/Migration/DBUpdate_3560/classes/class.ilDBUpdateNewObjectType.php');
 
 /**
  * xApi plugin
@@ -37,7 +38,14 @@ class ilXapiCmi5Plugin extends ilRepositoryObjectPlugin
 		$ilDB->dropTable('xxcf_data_settings');
 		$ilDB->dropTable('xxcf_results');
 		$ilDB->dropTable('xxcf_user_mapping');
-		$ilDB->dropTable('xxcf_data_token');
+        $ilDB->dropTable('xxcf_data_token');
+        if( $ilDB->tableExists('xxcf_users') ) {
+            $ilDB->dropTable('xxcf_users');
+        }
+        if( $ilDB->tableExists('xxcf_usrobjuuid_map') ) {
+            $ilDB->dropTable('xxcf_usrobjuuid_map');
+        }
+        // ToDo: delete RBAC Operations?
 	}
 	
 
@@ -114,6 +122,34 @@ class ilXapiCmi5Plugin extends ilRepositoryObjectPlugin
 	{
 		return ilUtil::delDir(self::_getWebspaceDir($a_level, $a_id));
 	}
-	
+    
+    /**
+    * Before activation processing
+    * adding read_outcomes
+    */
+    protected function beforeActivation()
+    {
+        global $DIC;
+        $ret = parent::beforeActivation();
+        $xxcfTypeId = ilDBUpdateNewObjectType::getObjectTypeId('xxcf');
+        $operationId = ilDBUpdateNewObjectType::getCustomRBACOperationId('read_outcomes');
+        if (empty($operationId)) {
+            $operationId = ilDBUpdateNewObjectType::addCustomRBACOperation(
+                'read_outcomes',
+                'Access Outcomes',
+                'object',
+                '2250'
+            );
+        }
+        ilDBUpdateNewObjectType::addRBACOperation($xxcfTypeId, $operationId);
+        $operationId = ilDBUpdateNewObjectType::addCustomRBACOperation(
+            'delete_xapi_data',
+            'Delete Xapi Data',
+            'object',
+            '2255'
+        );
+        ilDBUpdateNewObjectType::addRBACOperation($xxcfTypeId, $operationId);
+        return true;
+    }
 }
 ?>

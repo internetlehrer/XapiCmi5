@@ -292,3 +292,20 @@ conf_privacy_setting_default#:#Standardeinstellungen, änderbar für Objekte
 conf_privacy_setting_force#:#Die Einstellungen sind für Objekte nicht änderbar.
 no_change_default_privacy_settings#:#Die Einstellungen sind bei diesem LRS-Typ nicht änderbar
 hints#:#Hinweise
+delete_all_data#:#Alle Daten löschen
+delete_filtered_data#:#Gefilterte Auswahl an Daten löschen
+delete_own_data#:#Eigene Daten löschen
+confirm_delete_all_data#:#Sind Sie sicher dass Sie ALLE Daten löschen möchten?
+confirm_delete_filtered_data#:#Sind Sie sicher dass Sie die gefilterte Auswahl löschen möchten?
+confirm_delete_own_data#:#Sind Sie sicher dass Sie Ihre eigenen Daten löschen möchten?
+title_delete_all_data#:#Alle Daten löschen
+title_delete_filtered_data#:#Gefilterte Daten löschen
+title_delete_own_data#:#Eigene Daten löschen
+deleted_all_data#:#Alle Daten gelöscht
+deleted_filtered_data#:#Gefilterte Auswahl von Daten gelöscht
+deleted_own_data#:#Eigene Daten gelöscht
+statements_count#:#Anzahl Statements
+filtered_by#:#Gefiltered
+show_statements#:#Lernerfahrungen anzeigen
+show_statements_info#:#Die Lernerfahrungen anderer Benutzer können angezeigt werden, wenn das Recht 'XapiPlugin: Lernerfahrungen anderer Benutzer anzeigen' gesetzt ist.
+tab_statements#:#Lernerfahrungen
