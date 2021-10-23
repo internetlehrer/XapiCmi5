@@ -952,16 +952,18 @@ if (IL_INST_ID == 0) {
 $set = $ilDB->query("SELECT * FROM xxcf_usrobjuuid_map");
 while ($row = $ilDB->fetchAssoc($set)) {
 	$ident = IL_INST_ID . '_' . $row['uuid'] . $iliasDomain . '@iliassecretuser.de';
-	$ilDB->insert('xxcf_users', array(
-		'obj_id' => array('integer', $row['obj_id']),
-		'usr_id' => array('integer', $row['usr_id']),
-		'privacy_ident' => array('integer', 4),
-		'usr_ident' => array('text', $ident)
-		)
-	);
+	try {
+		$ilDB->insert('xxcf_users', array(
+			'obj_id' => array('integer', $row['obj_id']),
+			'usr_id' => array('integer', $row['usr_id']),
+			'privacy_ident' => array('integer', 4),
+			'usr_ident' => array('text', $ident)
+			)
+		);
+	} catch (Exception $e) {}
 }
 
-$set = $ilDB->query("SELECT count(*) cnt FROM xxcf_usrobjuuid_map");
+$set = $ilDB->query("SELECT count(distinct('u'+usr_id+'o'+obj_id)) cnt FROM xxcf_usrobjuuid_map");
 $row = $ilDB->fetchAssoc($set);
 $counter_uuid = $row['cnt'];
 
@@ -970,7 +972,7 @@ $row = $ilDB->fetchAssoc($set);
 $counter_users = $row['cnt'];
 
 if ($counter_uuid == $counter_users) {
-	$ilDB->dropTable("xxcf_usrobjuuid_map");
+	//$ilDB->dropTable("xxcf_usrobjuuid_map");
 } else {
 	die("migration of users with uuid not successful");
 }
