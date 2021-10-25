@@ -963,9 +963,11 @@ while ($row = $ilDB->fetchAssoc($set)) {
 	} catch (Exception $e) {}
 }
 
-$set = $ilDB->query("SELECT count(distinct('u'+usr_id+'o'+obj_id)) cnt FROM xxcf_usrobjuuid_map");
-$row = $ilDB->fetchAssoc($set);
-$counter_uuid = $row['cnt'];
+$set = $ilDB->query("select count(*) as UUIDs from xxcf_usrobjuuid_map group by obj_id, usr_id");
+$counter_uuid = 0;
+while ($row = $ilDB->fetchAssoc($set)) {
+	$counter_uuid++;
+}
 
 $set = $ilDB->query("SELECT count(*) cnt FROM xxcf_users");
 $row = $ilDB->fetchAssoc($set);
