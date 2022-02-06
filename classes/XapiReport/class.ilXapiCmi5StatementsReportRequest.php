@@ -33,13 +33,13 @@ class ilXapiCmi5StatementsReportRequest extends ilXapiCmi5AbstractRequest
     /**
      * @return ilXapiCmi5StatementsReport $report
      */
-    public function queryReport($objId)
+    public function queryReport($objId, $refId)
     {
         $reportResponse = $this->sendRequest($this->linkBuilder->getUrl());
 
         //$GLOBALS['DIC']->logger()->root()->log(var_export($reportResponse,TRUE));
         
-        $report = new ilXapiCmi5StatementsReport($reportResponse, $objId);
+        $report = new ilXapiCmi5StatementsReport($reportResponse, $objId, $refId);
 
         //$GLOBALS['DIC']->logger()->root()->log(var_export($report,TRUE));
         

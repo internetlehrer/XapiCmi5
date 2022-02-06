@@ -65,7 +65,6 @@ view#:#View
 type_time_to_delete#:#Time to expire
 type_time_to_delete_info#:#Expire time of an access token (for callback authentication)
 instructions#:#Instructions
-online_info#:#Switch the content online to get it visible for the learners
 view_log#:#View Log
 view_statistics#:#View Statistics
 type#:#Type
@@ -109,7 +108,7 @@ lms_id#:#LMS ID
 key#:#key
 any#:#any
 user#:#User
-delete#:#Delete log entry
+delete#:#Delete
 view_log#:#View log
 view_logs#:#View logs
 events_deleted#:#The selected events have been deleted
@@ -175,7 +174,7 @@ conf_log_level_1#:#Errors and warnings
 conf_log_level_2#:#Everything relevant to IIAS 
 conf_lrs_type_id#:#Name of the LRS-type
 info_lrs_type_id#:#Only Learning Locker is currently supported. 
-conf_lrs_type_id_0#:#Learning Locker Version 2
+conf_lrs_type_id_0#:#Learning Locker
 conf_lrs_endpoint_1#:#Endpoint 1
 conf_lrs_endpoint_2#:#Endpoint 2
 info_lrs_endpoint#:#URL of the endpoint without '/' at the end
@@ -195,26 +194,27 @@ conf_external_lrs#:#External LRS
 info_external_lrs#:#A hint will be shown to users when dealing with an external LRS. An external LRS is characterized by insufficient influence on the LRS the by the operator of the ILIAS-installation. This is the case when there are no rights to delete. 
 conf_privacy_ident#:#User identification (Default)
 info_privacy_ident#:#Standard is frequently the email address.
-conf_privacy_ident_0#:#Combination of user-id, URL and client
-info_privacy_ident_0#:#Send code. This is identical to each call, but doesn't allow a direct conclusion about the former user. 
-conf_privacy_ident_1#:#User-Id
-info_privacy_ident_1#:#Sends the internal numerical user-ID as identification
-conf_privacy_ident_2#:#Login
-info_privacy_ident_2#:#Sends the internal numerical user-ID as identification
-conf_privacy_ident_3#:#E-Mail Address
-info_privacy_ident_3#:#Sends E-Mail Address of user as identification (Warning: an E-Mail Address is not to be used by multiple users!)
-conf_privacy_ident_4#:#Random String
-info_privacy_ident_4#:#Generate and sends a random string as identification
+conf_privacy_ident_info#:#Standard is frequently the email address. The unique ILIAS platform id is:
+conf_privacy_ident_il_uuid_user_id#:#ILIAS user id combined with a unique ILIAS platform id formatted as an E-Mail adress
+conf_privacy_ident_il_uuid_user_id_info#:#This is identical to each call, but doesn't allow a direct conclusion about the ILIAS user.
+conf_privacy_ident_il_uuid_login#:#ILIAS Login combined with a unique ILIAS platform id formatted as an E-Mail adress
+conf_privacy_ident_il_uuid_login_info#:#This is identical to each call, but may allow a direct conclusion about the ILIAS user.
+conf_privacy_ident_il_uuid_ext_account#:#External User Id combined with a unique ILIAS platform id formatted as an E-Mail adress
+conf_privacy_ident_il_uuid_ext_account_info#:#This is identical to each call, but may allow a direct conclusion about the user.
+conf_privacy_ident_il_uuid_random#:#Random ID combined with a unique ILIAS platform ID formatted as an E-Mail address
+conf_privacy_ident_il_uuid_random_info#:#For each ILIAS object and ILIAS user a random ID is generated which remains identical for each call. Conclusions about a user are very limited because it is practically impossible to create user profiles across objects.
+conf_privacy_ident_real_email#:#E-Mail Address
+conf_privacy_ident_real_email_info#:#Sends E-Mail Address of user as identification (Warning: an E-Mail Address might be used by multiple users!)
 conf_privacy_name#:#User name (Default)
-info_privacy_name#:#Sending an user name is usually not required.
-conf_privacy_name_0#:#No one
-info_privacy_name_0#:#Sends '-' instead of a name 
-conf_privacy_name_1#:#First name
-info_privacy_name_1#:#Sends the first name of the user name from ILIAS 
-conf_privacy_name_2#:#Title and last name
-info_privacy_name_2#:#Sends Mister or Ms/Mrs. (unless otherwise specified) and the last name 
-conf_privacy_name_3#:#Entire name
-info_privacy_name_3#:#Sends title, first name and last name
+conf_privacy_name_info#:#Sending an user name is usually not required.
+conf_privacy_name_none#:#No one
+conf_privacy_name_none_info#:#Sends '-' instead of a name
+conf_privacy_name_firstname#:#First name
+conf_privacy_name_firstname_info#:#Sends the first name of the user name from ILIAS
+conf_privacy_name_lastname#:#Title and last name
+conf_privacy_name_lastname_info#:#Sends Mister or Ms/Mrs. (unless otherwise specified) and the last name
+conf_privacy_name_fullname#:#Entire name
+conf_privacy_name_fullname_info#:#Sends title, first name and last name
 conf_privacy_comment_default#:#Indication to user
 info_privacy_comment_default#:#Please insert, if required, an additional indication on data security when using this LRS.
 conf_remarks#:#Internal comments
@@ -309,3 +309,70 @@ filtered_by#:#Filtered by
 show_statements#:#Display Learning Experiences
 show_statements_info#:#The Learning Experiences of other users could be displayed if the right 'XapiPlugin: View learning experiences of other users' is set.
 tab_statements#:#Learning Experiences
+cmix_add#:#Add xAPI/cmi5 Object
+cmix_add_cmi5_lm#:#cmi5 Learning Module
+cmix_add_cmi5_lm_info#:#This option should be used when the content is a cmi5 compliant learning module. Related features like suitable reportings are available without further configurations.
+cmix_add_xapi_standard_object#:#xAPI Standard Object
+cmix_add_xapi_standard_object_info#:#Use this option to have a generic content module offering all features like different reportings. This option comes with the greatest possible flexibility but requires a more complex configuration.
+cmix_add_lrs_type#:#LRS-Type
+cmix_add_source#:#Source
+cmix_add_source_url#:#Resource URL
+cmix_add_source_url_info#:#Use this option for an external resource.
+cmix_add_source_local_dir#:#Local Directory
+cmix_add_source_local_dir_info#:#Use this option for content packages on your local device.
+cmix_add_source_upload_dir#:#Upload Directory
+cmix_add_source_upload_dir_info#:#Use this option for content packages already uploaded into the ILIAS upload directory which is also used for SCORM and HTML packages.
+cmix_add_source_upload_select#:#--- Please select ---
+cmix_add_source_external_app#:#Resource not launched by ILIAS
+cmix_add_source_external_app_info#:#Use this option for separately launched resources as e.g. apps or simulations. Users must agree to the fetching of data.
+conf_iframe#:#embedded
+conf_iframe_info#:#The resource is displayed in an iframe in ILIAS instead of in a new window. Please note that not all resources allow to be displayed in an iframe.
+conf_own_window#:#Own Window
+conf_own_window_info#:#The content is opened in the same window and replaces the ILIAS Screen. When leaving the content the user returns to ILIAS - if the resource supports it.
+conf_new_window#:#New Window
+conf_new_window_info#:#The content is opened in a new window. When leaving the content this window gets closed.
+type_cmi5#:#cmi5 Learning Module
+type_generic#:#xAPI Standard Object
+conf_launch_mode#:#Launch Mode
+conf_launch_mode_normal#:#Normal
+conf_launch_mode_normal_info#:#Data related to the learning progress should be recorded.
+conf_launch_mode_browse#:#Browse
+conf_launch_mode_browse_info#:#This option should provide a user experience that allows the user to "look around" without judgement.
+conf_launch_mode_review#:#Review
+conf_launch_mode_review_info#:#This option should provide a user experience that allows the user to "revisit / review" already completed material.
+conf_keep_lp#:#Keep Learning Progress
+conf_keep_lp_info#:#The ILIAS learning progress status completed would be freezed.
+cmix_lrs_type#:#Learning Record Store (LRS)
+description_info#:#The description will be shown below the title.
+online_info#:#This makes the object visible and usable for the users.
+tbl_statements_date#:#Date
+tbl_statements_actor#:#User
+tbl_statements_verb#:#Verb
+tbl_statements_object#:#Object
+tbl_action_raw_data#:#View Raw Data
+cmix_all_verbs#:#All Verbs
+cmix_adlnetgov_expapi_verbs_answered#:#Answered
+cmix_adlnetgov_expapi_verbs_asked#:#Asked
+cmix_adlnetgov_expapi_verbs_attempted#:#Attempted
+cmix_adlnetgov_expapi_verbs_attended#:#Attended
+cmix_adlnetgov_expapi_verbs_commented#:#Commented
+cmix_adlnetgov_expapi_verbs_completed#:#Completed
+cmix_adlnetgov_expapi_verbs_exited#:#Exited
+cmix_adlnetgov_expapi_verbs_experienced#:#Experienced
+cmix_adlnetgov_expapi_verbs_failed#:#Failed
+cmix_adlnetgov_expapi_verbs_imported#:#Imported
+cmix_adlnetgov_expapi_verbs_initialized#:#Initialized
+cmix_adlnetgov_expapi_verbs_interacted#:#Interacted
+cmix_adlnetgov_expapi_verbs_launched#:#Launched
+cmix_adlnetgov_expapi_verbs_mastered#:#Mastered
+cmix_adlnetgov_expapi_verbs_passed#:#Passed
+cmix_adlnetgov_expapi_verbs_preferred#:#Preferred
+cmix_adlnetgov_expapi_verbs_progressed#:#Progressed
+cmix_adlnetgov_expapi_verbs_registered#:#Registered
+cmix_adlnetgov_expapi_verbs_responded#:#Responded
+cmix_adlnetgov_expapi_verbs_resumed#:#Resumed
+cmix_adlnetgov_expapi_verbs_scored#:#Scored
+cmix_adlnetgov_expapi_verbs_shared#:#Shared
+cmix_adlnetgov_expapi_verbs_suspended#:#Suspended
+cmix_adlnetgov_expapi_verbs_terminated#:#Terminated
+cmix_adlnetgov_expapi_verbs_voided#:#Voided

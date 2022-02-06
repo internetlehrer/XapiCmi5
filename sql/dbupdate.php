@@ -1068,3 +1068,384 @@ if($ilDB->tableExists('xxcf_data_settings'))
     }
 }
 ?>
+<#29>
+<?php
+/**
+ * Plugin refactoring
+ */
+if ( !$ilDB->tableColumnExists('xxcf_users', 'registration') ) {
+    $ilDB->addTableColumn('xxcf_users', 'registration', array(
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_data_settings', 'publisher_id') ) {
+    $ilDB->addTableColumn('xxcf_data_settings', 'publisher_id', array(
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_data_settings', 'anonymous_homepage') ) {
+    $ilDB->addTableColumn('xxcf_data_settings', 'anonymous_homepage', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 1
+    ));
+}
+?>
+<#30>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_data_settings', 'moveon') ) {
+    $ilDB->addTableColumn('xxcf_data_settings', 'moveon', array(
+        'type' => 'text',
+        'length' => 32,
+        'notnull' => true,
+        'default' => ''
+    ));
+}
+?>
+<#31>
+<?php
+if (!$ilDB->tableColumnExists('xxcf_data_token','cmi5_session')) {
+    $ilDB->addTableColumn("xxcf_data_token", "cmi5_session", [
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+    ]);
+}
+?>
+<#32>
+<?php
+if (!$ilDB->tableColumnExists('xxcf_data_token','returned_for_cmi5_session')) {
+    $ilDB->addTableColumn("xxcf_data_token", "returned_for_cmi5_session", [
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+    ]);
+}
+?>
+<#33>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_data_settings', 'launch_parameters') ) {
+    $ilDB->addTableColumn('xxcf_data_settings', 'launch_parameters', array(
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+    ));
+}
+?>
+<#34>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_data_settings', 'entitlement_key') ) {
+    $ilDB->addTableColumn('xxcf_data_settings', 'entitlement_key', array(
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+    ));
+}
+?>
+<#35>
+<?php
+if (!$ilDB->tableColumnExists('xxcf_data_token','cmi5_session_data')) {
+    $ilDB->addTableColumn("xxcf_data_token", "cmi5_session_data", [
+        'type' => 'clob'
+    ]);
+}
+?>
+<#36>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_users', 'satisfied') ) {
+    $ilDB->addTableColumn('xxcf_users', 'satisfied', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+?>
+<#37>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_data_settings', 'switch_to_review') ) {
+    $ilDB->addTableColumn('xxcf_data_settings', 'switch_to_review', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 1
+    ));
+}
+?>
+<#38>
+<?php
+if ($ilDB->tableExists('xxcf_data_settings')) {
+	$ilDB->renameTable('xxcf_data_settings', 'xxcf_settings');
+}
+if ($ilDB->tableExists('xxcf_data_token')) {
+	$ilDB->renameTable('xxcf_data_token', 'xxcf_token');
+}
+if ($ilDB->tableExists('xxcf_data_types')) {
+	$ilDB->renameTable('xxcf_data_types', 'xxcf_lrs_types');
+}
+?>
+<#39>
+<?php
+if ($ilDB->tableColumnExists('xxcf_settings', 'use_fetch')) {
+    $ilDB->renameTableColumn('xxcf_settings', "use_fetch", 'auth_fetch_url');
+}
+if ($ilDB->tableColumnExists('xxcf_settings', 'auth_fetch_url')) {
+    $ilDB->modifyTableColumn('xxcf_settings','auth_fetch_url', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+        )
+    );
+}
+?>
+<#40>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'bypass_proxy') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'bypass_proxy', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_lrs_types', 'bypass_proxy') ) {
+    $ilDB->addTableColumn('xxcf_lrs_types', 'bypass_proxy', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+
+?>
+<#41>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'content_type') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'content_type', array(
+            'type' => 'text',
+            'length' => 32,
+            'notnull' => false
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_enabled') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_enabled', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_achieved_ts') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_achieved_ts', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_percentage') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_percentage', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_wtime') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_wtime', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_own_table') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_own_table', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_top_table') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_top_table', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'highscore_top_num') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'highscore_top_num', array(
+            'type' => 'integer',
+            'length' => 4,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'keep_lp') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'keep_lp', array(
+            'type' => 'integer',
+            'length' => 1,
+            'notnull' => true,
+            'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'launch_mode') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'launch_mode', array(
+            'type' => 'text',
+            'length' => 32,
+            'notnull' => false
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'launch_method') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'launch_method', array(
+            'type' => 'text',
+            'length' => 32,
+            'notnull' => false
+    ));
+}
+
+
+
+// migration of xxcf offline status
+// $query = 'update object_data od set offline = ' .
+    // '(select if( availability_type = 0,1,0) from xxcf_settings ' .
+    // 'where obj_id = od.obj_id) where type = ' . $ilDB->quote('xxcf', 'text');
+// $ilDB->manipulate($query);
+?>
+<#42>
+<?php
+//content_type -> generic
+$query = 'update xxcf_settings set content_type = ' . $ilDB->quote('generic', 'text');
+$ilDB->manipulate($query);
+//launch_mode
+$query = 'update xxcf_settings set launch_mode = ' . $ilDB->quote('Normal', 'text');
+$ilDB->manipulate($query);
+//launch_method
+$query = 'update xxcf_settings set launch_method = ' . $ilDB->quote('iframe', 'text') . ' WHERE open_mode = 1';
+$ilDB->manipulate($query);
+$query = 'update xxcf_settings set launch_method = ' . $ilDB->quote('newWin', 'text') . ' WHERE open_mode = 0';
+$ilDB->manipulate($query);
+
+if ($ilDB->tableColumnExists('xxcf_settings', 'lp_threshold')) {
+    $ilDB->renameTableColumn('xxcf_settings', 'lp_threshold', 'mastery_score');
+}
+
+if ($ilDB->tableColumnExists('xxcf_settings', 'mastery_score')) {
+    $ilDB->modifyTableColumn('xxcf_settings','mastery_score', array(
+            'type' => 'float',
+            'notnull' => true,
+            'default' => 0.0
+        )
+    );
+}
+
+if ($ilDB->tableColumnExists('xxcf_settings', 'type_id')) {
+    $ilDB->renameTableColumn('xxcf_settings', 'type_id', 'lrs_type_id');
+}
+
+if ($ilDB->tableColumnExists('xxcf_settings', 'privacy_comment')) {
+    $ilDB->renameTableColumn('xxcf_settings', 'privacy_comment', 'usr_privacy_comment');
+}
+
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'source_type') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'source_type', array(
+            'type' => 'text',
+            'length' => 32,
+            'notnull' => false
+    ));
+}
+$query = 'update xxcf_settings set source_type = ' . $ilDB->quote('remoteSource', 'text');
+$ilDB->manipulate($query);
+
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'xml_manifest') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'xml_manifest', array(
+            'type' => 'clob'
+    ));
+}
+if ($ilDB->tableColumnExists('xxcf_token', 'time')) {
+    $ilDB->renameTableColumn('xxcf_token', 'time', 'valid_until');
+}
+if ( !$ilDB->tableColumnExists('xxcf_token', 'lrs_type_id') ) {
+    $ilDB->addTableColumn('xxcf_token', 'lrs_type_id', array(
+        'type' => 'integer',
+        'length' => 4,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_token', 'ref_id') ) {
+    $ilDB->addTableColumn('xxcf_token', 'ref_id', array(
+        'type' => 'integer',
+        'length' => 4,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+?>
+<#43>
+<?php
+if ($ilDB->tableColumnExists('xxcf_lrs_types', 'lrs_endpoint_1')) {
+    $ilDB->renameTableColumn('xxcf_lrs_types', 'lrs_endpoint_1', 'lrs_endpoint');
+};
+if ($ilDB->tableColumnExists('xxcf_lrs_types', 'lrs_key_1')) {
+    $ilDB->renameTableColumn('xxcf_lrs_types', 'lrs_key_1', 'lrs_key');
+};
+if ($ilDB->tableColumnExists('xxcf_lrs_types', 'lrs_secret_1')) {
+    $ilDB->renameTableColumn('xxcf_lrs_types', 'lrs_secret_1', 'lrs_secret');
+}
+?>
+<#44>
+<?php
+if ($ilDB->tableColumnExists('xxcf_lrs_types', 'log_level')) {
+    $ilDB->dropTableColumn('xxcf_lrs_types', 'log_level');
+}
+?>
+<#45>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_users', 'proxy_success') ) {
+    $ilDB->addTableColumn('xxcf_users', 'proxy_success', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+if ( !$ilDB->tableColumnExists('xxcf_users', 'fetched_until') ) {
+    $ilDB->addTableColumn('xxcf_users', 'fetched_until', array(
+        'type' => 'timestamp',
+        'notnull' => false
+    ));
+}
+?>
+<#46>
+<?php
+if ($ilDB->tableColumnExists('xxcf_results', 'result')) {
+    $ilDB->renameTableColumn('xxcf_results', 'result', 'score');
+}
+if ($ilDB->tableColumnExists('xxcf_results', 'time')) {
+    $ilDB->renameTableColumn('xxcf_results', 'time', 'last_update');
+}
+if ($ilDB->tableColumnExists('xxcf_results', 'status')) {
+    $ilDB->modifyTableColumn('xxcf_results','status', array(
+        'type' => 'text',
+        'length' => 255,
+        'notnull' => true,
+        'default' => ''
+        )
+    );
+}
+?>

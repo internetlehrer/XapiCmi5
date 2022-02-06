@@ -10,14 +10,23 @@
  * @author      Björn Heyser <info@bjoernheyser.de>
  * @author      Stefan Schneider <info@eqsoft.de>
  *
- * @package     Module/CmiXapi
  */
 class ilXapiCmi5VerbList
 {
-    /**
+    const PREFIX = 'rep_robj_xxcf_'; //plugin, sonst ''
+
+    const COMPLETED = 'http://adlnet.gov/expapi/verbs/completed';
+    const PASSED = 'http://adlnet.gov/expapi/verbs/passed';
+    const FAILED = 'http://adlnet.gov/expapi/verbs/failed';
+    const SATISFIED = 'http://adlnet.gov/expapi/verbs/satisfied';
+    const PROGRESSED = 'http://adlnet.gov/expapi/verbs/progressed';
+    const EXPERIENCED = 'http://adlnet.gov/expapi/verbs/experienced';
+
+        /**
      * @var array
      */
     protected $verbs = array(
+        'http://adlnet.gov/expapi/verbs/abandoned',
         'http://adlnet.gov/expapi/verbs/answered',
         'http://adlnet.gov/expapi/verbs/asked',
         'http://adlnet.gov/expapi/verbs/attempted',
@@ -38,6 +47,7 @@ class ilXapiCmi5VerbList
         'http://adlnet.gov/expapi/verbs/registered',
         'http://adlnet.gov/expapi/verbs/responded',
         'http://adlnet.gov/expapi/verbs/resumed',
+        'http://adlnet.gov/expapi/verbs/satisfied',
         'http://adlnet.gov/expapi/verbs/scored',
         'http://adlnet.gov/expapi/verbs/shared',
         'http://adlnet.gov/expapi/verbs/suspended',
@@ -53,7 +63,38 @@ class ilXapiCmi5VerbList
     {
         return in_array($verb, $this->verbs);
     }
-    
+
+    /**
+     * @param string $shortVerbId
+     * @return string
+     */
+    public function getVerbUri($verb)
+    {
+        return 'http://adlnet.gov/expapi/verbs/'. $verb;
+    }
+
+    /**
+     * @return array
+     */
+    public function getDynamicSelectOptions($verbs)
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $options = array(
+            '' => $this->getText('cmix_all_verbs')
+        );
+        
+        foreach ($verbs as $verb) {
+            $verb = $verb['_id'];
+            $options[urlencode($verb)] = self::getVerbTranslation(
+                $DIC->language(),
+                $verb
+            );
+        }
+        
+        return $options;
+    }
+
     /**
      * @return array
      */
@@ -62,7 +103,7 @@ class ilXapiCmi5VerbList
         global $DIC; /* @var \ILIAS\DI\Container $DIC */
         // ToDo
         $options = array(
-            '' => $DIC->language()->txt('cmix_all_verbs')
+            '' => $this->getText('cmix_all_verbs')
         );
         
         foreach ($this->verbs as $verb) {
@@ -82,12 +123,22 @@ class ilXapiCmi5VerbList
      */
     public static function getVerbTranslation(ilLanguage $lng, $verb)
     {
-        $langVar = str_replace('http://', '', $verb);
+        $verbMatch = preg_match('/\/([^\/]+)$/',$verb,$matches);
+        $shortVerb = $matches[1];
+        $langVar = preg_replace('/http(s)?:\/\//', '', $verb);
         $langVar = str_replace('.', '', $langVar);
         $langVar = str_replace('/', '_', $langVar);
-        $langVar = 'cmix_' . $langVar;
-        
-        return $lng->txt($langVar);
+        $langVar = self::PREFIX . 'cmix_' . $langVar;
+        $translatedVerb = $lng->txt($langVar);
+        // check no translation found?
+        if (strpos($translatedVerb,'-' . self::PREFIX . 'cmix_') === 0)
+        {
+            return $shortVerb;
+        }
+        else
+        {
+            return $translatedVerb;
+        }
     }
     
     /**
@@ -97,4 +148,15 @@ class ilXapiCmi5VerbList
     {
         return new self();
     }
+
+    protected function getText($txt)
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        $tmp = $DIC->language()->txt(self::PREFIX.$txt);
+        if ($tmp == "-" . self::PREFIX . $txt . "-") {
+            return $DIC->language()->txt($txt);
+        }
+        return $tmp;
+    }
+
 }

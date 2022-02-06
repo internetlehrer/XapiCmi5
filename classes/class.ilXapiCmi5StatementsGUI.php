@@ -36,10 +36,10 @@ class ilXapiCmi5StatementsGUI
      */
     protected $gui;
     
-    /** ToDo
+    /**
      * @var ilXapiCmi5Access
      */
-    //protected $access;
+    protected $access;
     
     /**
      * @param ilObjXapiCmi5 $object
@@ -48,6 +48,7 @@ class ilXapiCmi5StatementsGUI
     {
         $this->gui = $gui;
         $this->object = $gui->object;
+        $this->access = ilObjXapiCmi5Access::getInstance($this->object);
     }
 
     public function executeCommand()
@@ -79,7 +80,6 @@ class ilXapiCmi5StatementsGUI
     protected function showCmd()
     {
         global $DIC; /* @var \ILIAS\DI\Container $DIC */
-        
         //ToDo: check rights
         $table = $this->buildTableGUI();
         
@@ -105,7 +105,6 @@ class ilXapiCmi5StatementsGUI
             $table->setMaxCount(0);
             $table->resetOffset();
         }
-        
         return  $this->getPage($table);
     }
 
@@ -155,6 +154,7 @@ class ilXapiCmi5StatementsGUI
     {
         // ToDo: Cancel Action -> terminate batchDelete?
         global $DIC, $lng; /* @var \ILIAS\DI\Container $DIC */
+        $DIC->logger()->root()->log("getDeleteModal");
         $factory = $DIC->ui()->factory();
         $renderer = $DIC->ui()->renderer();
         $message = $this->gui->getText("confirm_delete_${scope}_data");
@@ -180,7 +180,7 @@ class ilXapiCmi5StatementsGUI
             $end = $filter->getEndDate();
             $verb = $filter->getVerb();
             $messageDetails .= '</br></br>' . $this->gui->getText('filtered_by').':';
-            if ($filter->getActor() && ilObjXapiCmi5Access::hasOutcomesAccess($this->object)) {
+            if ($filter->getActor() && $this->access->hasOutcomesAccess($this->object)) {
                 $messageDetails .= '</br>User: ' . $table->getFilterItemByPostVar('actor')->getValue();
             }
             if ($verb) {
@@ -260,11 +260,11 @@ class ilXapiCmi5StatementsGUI
     protected function getPage($table) {
         unset($_SESSION['xxcf_delete_scope']);
         $html = '';
-        if (ilObjXapiCmi5Access::hasDeleteXapiDataAccess($this->object)) {
+        if ($this->access->hasDeleteXapiDataAccess($this->object)) {
             $html = $this->getDeleteButton($table,ilXapiCmi5StatementsDeleteRequest::DELETE_SCOPE_FILTERED) .
                     $this->getDeleteButton($table,ilXapiCmi5StatementsDeleteRequest::DELETE_SCOPE_OWN);
         }
-        if (ilObjXapiCmi5Access::hasOutcomesAccess($this->object) && ilObjXapiCmi5Access::hasDeleteXapiDataAccess($this->object)) {
+        if ($this->access->hasOutcomesAccess($this->object) && $this->access->hasDeleteXapiDataAccess($this->object)) {
             $html .= $this->getDeleteButton($table,ilXapiCmi5StatementsDeleteRequest::DELETE_SCOPE_ALL);
         }
         $html .= $table->getHTML();
@@ -367,8 +367,8 @@ class ilXapiCmi5StatementsGUI
     
     protected function initActorFilter(ilXapiCmi5StatementsReportFilter $filter, ilXapiCmi5StatementsTableGUI $table)
     {
-        global $DIC; /* @var \ILIAS\DI\Container $DIC */
-        if (ilObjXapiCmi5Access::hasOutcomesAccess($this->object)) {
+        global $DIC;
+        if ($this->access->hasOutcomesAccess($this->object)) {
             $actor = $table->getFilterItemByPostVar('actor')->getValue();
             if (strlen($actor)) {
                 $usrId = ilObjUser::getUserIdByLogin($actor);
@@ -379,7 +379,7 @@ class ilXapiCmi5StatementsGUI
                 }
             }
         } else {
-            $filter->setActor(new ilXapiCmi5User($this->object->getId(), $DIC->user()->getId()));
+            $filter->setActor(new ilXapiCmi5User($this->object->getId(), $DIC->user()->getId(),$this->object->getPrivacyIdent()));
         }
     }
     
@@ -433,7 +433,7 @@ class ilXapiCmi5StatementsGUI
     protected function initTableData(ilXapiCmi5StatementsTableGUI $table, ilXapiCmi5StatementsReportFilter $filter)
     {
         global $DIC;
-        if (ilObjXapiCmi5Access::hasOutcomesAccess($this->object)) {
+        if ($this->access->hasOutcomesAccess($this->object)) {
             if (!ilXapiCmi5User::userExists($this->object->getId())) {
                 $table->setData(array());
                 $table->setMaxCount(0);
@@ -450,9 +450,9 @@ class ilXapiCmi5StatementsGUI
                 return;
             }
         }
-        
         $linkBuilder = new ilXapiCmi5StatementsReportLinkBuilder(
             $this->object->getId(),
+            $this->object->getRefId(),
             $this->object->getLrsType()->getDefaultLrsEndpointStatementsAggregationLink(),
             $filter
         );
@@ -461,7 +461,7 @@ class ilXapiCmi5StatementsGUI
             $this->object->getLrsType()->getDefaultBasicAuth(),
             $linkBuilder
         );
-        $statementsReport = $request->queryReport($this->object->getId());
+        $statementsReport = $request->queryReport($this->object->getId(), $this->object->getRefId());
         $data = $statementsReport->getTableData();
         $table->setData($data);
         $table->setMaxCount($statementsReport->getMaxCount());
@@ -472,7 +472,7 @@ class ilXapiCmi5StatementsGUI
      */
     protected function buildTableGUI() : ilXapiCmi5StatementsTableGUI
     {
-        $isMultiActorReport = ilObjXapiCmi5Access::hasOutcomesAccess($this->object);        
+        $isMultiActorReport = $this->access->hasOutcomesAccess($this->object);        
         $table = new ilXapiCmi5StatementsTableGUI($this->gui, 'show', $isMultiActorReport);
         $table->setFilterCommand('applyFilter');
         $table->setResetCommand('resetFilter');

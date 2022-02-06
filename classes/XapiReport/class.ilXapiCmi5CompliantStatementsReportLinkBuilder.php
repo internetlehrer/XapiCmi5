@@ -2,6 +2,7 @@
 
 /* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
 
+require_once __DIR__.'/class.ilXapiCmi5StatementsReportFilter.php';
 
 /**
  * Class XapiReportLinkBuilder
@@ -13,12 +14,12 @@
 class ilXapiCmi5CompliantStatementsReportLinkBuilder
 {
     /**
-     * @var ilObjCmiXapi
+     * @var ilObjXapiCmi5
      */
     protected $object;
     
     /**
-     * @var ilXapiCmi5Type
+     * @var ilXapiCmi5LrsType
      */
     protected $lrsType;
     
@@ -27,7 +28,7 @@ class ilXapiCmi5CompliantStatementsReportLinkBuilder
      */
     protected $filter;
     
-    public function __construct(ilObjCmiXapi $object, ilCmiXapiStatementsReportFilter $filter)
+    public function __construct(ilObjXapiCmi5 $object, ilXapiCmi5StatementsReportFilter $filter)
     {
         $this->object = $object;
         $this->lrsType = $object->getLrsType();

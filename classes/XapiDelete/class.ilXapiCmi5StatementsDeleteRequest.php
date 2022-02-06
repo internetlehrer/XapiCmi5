@@ -1,11 +1,14 @@
 <?php
 
 /* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
-
+if ((int)ILIAS_VERSION_NUMERIC < 6) { // only in plugin
+    require_once __DIR__.'/../XapiProxy/vendor/autoload.php';
+}
 require_once __DIR__.'/../class.ilObjXapiCmi5.php';
 require_once __DIR__.'/../XapiReport/class.ilXapiCmi5StatementsReportFilter.php';
 require_once __DIR__.'/../class.ilXapiCmi5User.php';
-require_once __DIR__.'/../class.ilXapiCmi5Type.php';
+require_once __DIR__.'/../class.ilXapiCmi5LrsType.php';
+require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/XapiReport/class.ilXapiCmi5AbstractRequest.php');
 /**
  * Class ilXapiCmi5StatementsDeleteRequest
  *
@@ -18,6 +21,16 @@ class ilXapiCmi5StatementsDeleteRequest
     const DELETE_SCOPE_ALL = "all";
     const DELETE_SCOPE_OWN = "own";
     
+    /**
+     * @var bool
+     */
+    protected $plugin = true;
+
+    /**
+     * @var bool
+     */
+    protected $cmi5_extensions_query = false;
+
     /**
      * @var string
      */
@@ -34,7 +47,12 @@ class ilXapiCmi5StatementsDeleteRequest
     protected $objId;
 
     /**
-     * @var ilXapiCmi5Type
+     * @var int
+     */
+    protected $refId;
+
+    /**
+     * @var ilXapiCmi5LrsType
      */
     protected $lrsType;
 
@@ -71,6 +89,7 @@ class ilXapiCmi5StatementsDeleteRequest
     /**
      * ilXapiCmi5StatementsDeleteRequest constructor.
      * @param int $obj_id
+     * @param int $ref_id
      * @param int $type_id
      * @param int $usr_id
      * @param string $activity_id
@@ -86,18 +105,15 @@ class ilXapiCmi5StatementsDeleteRequest
         ?ilXapiCmi5StatementsReportFilter $filter = NULL
         )
     {
-        if ((int)ILIAS_VERSION_NUMERIC < 6) { // only in plugin
-            require_once __DIR__.'/../XapiProxy/vendor/autoload.php';
-        }
         $this->objId = $obj_id;
-        $this->lrsType = new ilXapiCmi5Type($type_id);
+        $this->lrsType = new ilXapiCmi5LrsType($type_id);
         $this->activityId = $activity_id;
         $this->usrId = $usr_id;
         $this->scope = $scope;
         $this->filter = $filter;
         
         $this->endpointDefault = $this->lrsType->getDefaultLrsEndpoint();
-        $this->endpointFallback = $this->lrsType->getFallbackLrsEndpoint();
+        $this->endpointFallback = ($this->plugin) ? $this->lrsType->getFallbackLrsEndpoint() : '';
         $this->hasFallback = ($this->endpointFallback === "") ? FALSE : TRUE;
         $this->client = new GuzzleHttp\Client();
         $this->headers = [
@@ -118,21 +134,39 @@ class ilXapiCmi5StatementsDeleteRequest
     {
         global $DIC; /** @var \ILIAS\DI\Container $DIC */
         $allResponses = $this->deleteData();
+
         $resStatements = $allResponses['statements'];
+        $hasFallback = isset($resStatements['fallback']);
         $resStates = $allResponses['states'];
+
+        // required?
         $defaultRejected = isset($resStatements['default']) && isset($resStatements['default']['state']) && $resStatements['default']['state'] === 'rejected';
         $fallbackRejected = isset($resStatements['fallback']) && isset($resStatements['fallback']['state']) && $resStatements['fallback']['state'] === 'rejected';
+
         $resArr = array();
-        // ToDo: fullfilled and status code handling
-        if (isset($resStatements['default']) && isset($resStatements['default']['value'])) {
-            $res = $resStatements['default']['value'];
-            $resBody = json_decode($res->getBody(),true);
-            $resArr[] = $resBody['_id']; 
+
+        // statements
+        $defaultStatementsBody = '';
+        ilXapiCmi5AbstractRequest::checkResponse($resStatements['default'],$defaultStatementsBody,[200]);
+        $defaultStatementResBody = json_decode($defaultStatementsBody,true);
+        $resArr[] = $defaultStatementResBody['_id'];
+
+        if ($hasFallback)
+        {
+            $fallbackStatementsBody = '';
+            ilXapiCmi5AbstractRequest::checkResponse($resStatements['fallback'],$fallbackStatementsBody,[200]);
+            $fallbackStatementResBody = json_decode($fallbackStatementsBody,true);
+            $resArr[] = $fallbackStatementResBody['_id'];
         }
-        if (isset($resStatements['fallback']) && isset($resStatements['fallback']['value'])) {
-            $res = $resStatements['fallback']['value'];
-            $resBody = json_decode($res->getBody(),true);
-            $resArr[] = $resBody['_id'];
+        if (count($resArr) == 0) {
+            $DIC->logger()->root()->log("No data deleted");
+            return !$defaultRejected && !$fallbackRejected;
+        }
+
+        // states
+        $stateBody = '';
+        foreach ($resStates as $resState) {
+            ilXapiCmi5AbstractRequest::checkResponse($resState,$stateBody,[204]);
         }
         
         if (count($resArr) == 0) {
@@ -140,27 +174,29 @@ class ilXapiCmi5StatementsDeleteRequest
             return !$defaultRejected && !$fallbackRejected;
         }
 
-        $maxtime = 240; // should be some minutes!
+        $maxtime = 30; // x 3 seconds = 90 secs - should be some minutes
         $t = 0;
         $done = false;
         while ($t < $maxtime) {
             // get batch done
-            sleep(1);
+            sleep(3);
+            $t++;
             $response = $this->queryBatch($resArr);
-            if (isset($response['default']) && isset($response['default']['value'])) {
-                $res = $response['default']['value'];
-                $resBody = json_decode($res->getBody(),true);
-                if ($resBody && $resBody['edges'] && count($resBody['edges']) == 1) {
-                    $doneDefault = $resBody['edges'][0]['node']['done'];
-                    $DIC->logger()->root()->log("doneDefault: " . $doneDefault);
-                }
+
+            $defaultBatchBody = '';
+            ilXapiCmi5AbstractRequest::checkResponse($response['default'],$defaultBatchBody,[200]);
+            $defaultBatchResBody = json_decode($defaultBatchBody,true);
+            if ($defaultBatchResBody && $defaultBatchResBody['edges'] && count($defaultBatchResBody['edges']) == 1) {
+                $doneDefault = $defaultBatchResBody['edges'][0]['node']['done'];
             }
-            if (isset($response['fallback']) && isset($response['fallback']['value'])) {
-                $res = $response['fallback']['value'];
-                $resBody = json_decode($res->getBody(),true);
-                if ($resBody && $resBody['edges'] && count($resBody['edges']) == 1) {
-                    $doneFallback = $resBody['edges'][0]['node']['done'];
-                    $DIC->logger()->root()->log("doneFallback: " . $doneFallback);
+
+            if ($hasFallback) 
+            {
+                $fallbackBatchBody = '';
+                ilXapiCmi5AbstractRequest::checkResponse($response['fallback'],$fallbackBatchBody,[200]);
+                $fallbackBatchResBody = json_decode($fallbackBatchBody,true);
+                if ($fallbackBatchResBody && $fallbackBatchResBody['edges'] && count($fallbackBatchResBody['edges']) == 1) {
+                    $doneFallback = $fallbackBatchResBody['edges'][0]['node']['done'];
                 }
             }
             if ($this->hasFallback && $doneDefault && $doneFallback) {
@@ -173,7 +209,6 @@ class ilXapiCmi5StatementsDeleteRequest
                     break;
                 }
             }
-            $t++;
         }
         if ($done) {
             $this->checkDeleteUsersForObject();
@@ -187,7 +222,6 @@ class ilXapiCmi5StatementsDeleteRequest
     public function deleteData() : array
     {
         global $DIC;
-
         $deleteState = true;
 
         $f = null;
@@ -268,6 +302,7 @@ class ilXapiCmi5StatementsDeleteRequest
         if ($scope === self::DELETE_SCOPE_ALL) {
             $f = $this->buildDeleteAll();
         }
+        
         $pipeline[] = array('$match' => $f);
         $pipeline[] = array('$count' => 'count');
         $pquery = urlencode(json_encode($pipeline));
@@ -343,28 +378,64 @@ class ilXapiCmi5StatementsDeleteRequest
     private function buildDeleteAll() : array 
     {
         global $DIC;
-        $f = array();
-        
-        $f['statement.object.objectType'] = 'Activity';
-        $f['statement.object.id'] = [
-            '$regex' => '^' . preg_quote($this->activityId) . ''
-        ];
-        
-        $f['statement.actor.objectType'] = 'Agent';
-        
-        $f['$or'] = [];
-        // foreach (ilXapiCmi5User::getUsersForObjectPlugin($this->getObjId()) as $usr_id) {
-            // $f['$or'][] = ['statement.actor.mbox' => "mailto:".ilXapiCmi5User::getUsrIdentPlugin($usr_id,$this->getObjId())];
-		foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
-            $f['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
+        $stage = array();
+        $stage['statement.object.objectType'] = 'Activity';
+        $stage['statement.actor.objectType'] = 'Agent';
+        $obj = $this->getObj();
+        $activityId = array();
+
+        if ($this->cmi5_extensions_query == true && $obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5 && !$obj->isMixedContentType())
+        {
+            // https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#963-extensions
+            $activityId['statement.context.extensions.https://ilias&46;de/cmi5/activityid'] = $obj->getActivityId();
         }
-        if (count($f['$or']) == 0) {
-            // Exception Handling!
-            return [];
+        else
+        {
+            // for case-insensive: '$regex' => '(?i)^' . preg_quote($this->filter->getActivityId()) . ''
+            $activityQuery = [
+                '$regex' => '^' . preg_quote($this->activityId) . ''
+            ];
+            $activityId['$or'] = [];
+            // ToDo : restriction to exact activityId?
+            // query existing activityId in grouping? we have not enough control over acticityId in xapi statements  
+            // another way put the obj_id into a generated registration, but we are not sure that content will put this into statement context 
+            // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
+            $activityId['$or'][] = ['statement.object.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
         }
-        else {
-            return $f;
+        $actor = array();
+        
+        if ($obj->isMixedContentType()) 
+        {
+            foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) 
+            {
+                $usrIdent = $cmixUser->getUsrIdent();
+                $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+                $actor['$or'][] = ['statement.actor.account.name' => "{$usrIdent}"];
+            }
         }
+        elseif ($obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5) 
+        {
+            // required ? not just delete all data for activityId (=unique map to ILIAS obj) 
+            foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) 
+            {
+                 $actor['$or'][] = ['statement.context.registration' => "{$cmixUser->getRegistration()}"];
+            }
+        }
+        else // xAPI
+        {
+            foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) 
+            {
+                $usrIdent = $cmixUser->getUsrIdent();
+                $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+            }
+        }
+       
+        $stage['$and'][] = $activityId;
+        if (count($actor) > 0) {
+            $stage['$and'][] = $actor;
+        }
+        return $stage;
     }
 
     /**
@@ -373,28 +444,90 @@ class ilXapiCmi5StatementsDeleteRequest
     private function buildDeleteFiltered() : array
     {
         global $DIC;
-        $f = array();
+        $stage = array();
+        $stage['statement.object.objectType'] = 'Activity';
+        $stage['statement.actor.objectType'] = 'Agent';
+        $obj = $this->getObj();
+        $activityId = array();
+
+        if ($this->cmi5_extensions_query == true && $obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5 && !$obj->isMixedContentType())
+        {
+            // https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#963-extensions
+            $activityId['statement.context.extensions.https://ilias&46;de/cmi5/activityid'] = $obj->getActivityId();
+        }
+        else
+        {
+            // for case-insensive: '$regex' => '(?i)^' . preg_quote($this->filter->getActivityId()) . ''
+            $activityQuery = [
+                '$regex' => '^' . preg_quote($this->activityId) . ''
+            ];
+            $activityId['$or'] = [];
+            // ToDo : restriction to exact activityId?
+            // query existing activityId in grouping? we have not enough control over acticityId in xapi statements  
+            // another way put the obj_id into a generated registration, but we are not sure that content will put this into statement context 
+            // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
+            $activityId['$or'][] = ['statement.object.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+        }
+
+        $actor = array();
         
-        $f['statement.object.objectType'] = 'Activity';
-        $f['statement.object.id'] = [
-            '$regex' => '^' . preg_quote($this->activityId) . ''
-        ];
-        
-        $f['statement.actor.objectType'] = 'Agent';
-        $f['$or'] = [];
-        if ($this->filter->getActor()) {
-			foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
-				if ($cmixUser->getUsrId() == $this->filter->getActor()->getUsrId()) {
-					$f['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
-				}
+        if ($obj->isMixedContentType()) 
+        {
+            if ($this->filter->getActor()) {
+                foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser)
+                {
+                    if ($cmixUser->getUsrId() == $this->filter->getActor()->getUsrId()) {
+                        $usrIdent = $cmixUser->getUsrIdent();
+                        $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+                        $actor['$or'][] = ['statement.actor.account.name' => "{$usrIdent}"];
+                    }
+                }
             }
-        } 
-        else { // check hasOutcomes Access? 
-			foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
-				$f['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
+            else {
+                foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
+                    $usrIdent = $cmixUser->getUsrIdent();
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+                    $actor['$or'][] = ['statement.actor.account.name' => "{$usrIdent}"];
+                }
+            }
+        }
+        elseif ($obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5) 
+        {
+            if ($this->filter->getActor()) {
+                foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser)
+                {
+                    if ($cmixUser->getUsrId() == $this->filter->getActor()->getUsrId()) {
+                        $actor['$or'][] = ['statement.context.registration' => "{$cmixUser->getRegistration()}"];
+                    }
+                }
+            }
+            else {
+                foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
+                    $actor['$or'][] = ['statement.context.registration' => "{$cmixUser->getRegistration()}"];
+                }
+            }
+        }
+        else // xAPI
+        {
+            if ($this->filter->getActor()) {
+                foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser)
+                {
+                    if ($cmixUser->getUsrId() == $this->filter->getActor()->getUsrId()) {
+                        $usrIdent = $cmixUser->getUsrIdent();
+                        $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+                    }
+                }
+            }
+            else {
+                foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
+                    $usrIdent = $cmixUser->getUsrIdent();
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+                }
             }
         }
 
+        $f = array();
         if ($this->filter->getVerb()) {
             $f['statement.verb.id'] = $this->filter->getVerb();
         }
@@ -411,13 +544,14 @@ class ilXapiCmi5StatementsDeleteRequest
             }
         }
         
-        if (count($f['$or']) == 0) {
-            // Exception Handling!
-            return [];
+        $stage['$and'][] = $activityId;
+        if (count($actor) > 0) {
+            $stage['$and'][] = $actor;
         }
-        else {
-            return $f;
+        if (count($f) > 0) {
+            $stage['$and'][] = $f;
         }
+        return $stage;
     }
 
     /**
@@ -425,26 +559,70 @@ class ilXapiCmi5StatementsDeleteRequest
      */
     private function buildDeleteOwn() : array
     {
-        global $DIC;
-        $f = array();
-        $f['statement.object.objectType'] = 'Activity';
-        $f['statement.object.id'] = [
-            '$regex' => '^' . preg_quote($this->activityId) . ''
-        ];
-        $f['statement.actor.objectType'] = 'Agent';
+       global $DIC;
+        $stage = array();
+        $stage['statement.object.objectType'] = 'Activity';
+        $stage['statement.actor.objectType'] = 'Agent';
+        $obj = $this->getObj();
+        $activityId = array();
+        $activityId = array();
+
+        if ($this->cmi5_extensions_query == true && $obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5 && !$obj->isMixedContentType())
+        {
+            // https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#963-extensions
+            $activityId['statement.context.extensions.https://ilias&46;de/cmi5/activityid'] = $obj->getActivityId();
+        }
+        else
+        {
+            // for case-insensive: '$regex' => '(?i)^' . preg_quote($this->filter->getActivityId()) . ''
+            $activityQuery = [
+                '$regex' => '^' . preg_quote($this->activityId) . ''
+            ];
+            $activityId['$or'] = [];
+            // ToDo : restriction to exact activityId?
+            // query existing activityId in grouping? we have not enough control over acticityId in xapi statements  
+            // another way put the obj_id into a generated registration, but we are not sure that content will put this into statement context 
+            // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
+            $activityId['$or'][] = ['statement.object.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+        }
+        
+        $actor = array();
 
         $usrId = ($this->usrId !== NULL) ? $this->usrId : $DIC->user()->getId();
         $cmixUsers = ilXapiCmi5User::getInstancesByObjectIdAndUsrId($this->objId,$usrId);
-        $f['$or'] = [];
-        foreach ($cmixUsers as $cmixUser) {
-            $f['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
+        
+        if ($obj->isMixedContentType()) 
+        {
+            foreach ($cmixUsers as $cmixUser) 
+            {
+                $usrIdent = $cmixUser->getUsrIdent();
+                $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+                $actor['$or'][] = ['statement.actor.account.name' => "{$usrIdent}"];
+            }
         }
-        if (count($f['$or']) == 0) {
-            return [];
+        elseif ($obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5) 
+        {
+            // required ? not just delete all data for activityId (=unique map to ILIAS obj) 
+            foreach ($cmixUsers as $cmixUser) 
+            {
+                 $actor['$or'][] = ['statement.context.registration' => "{$cmixUser->getRegistration()}"];
+            }
         }
-        else {
-            return $f;
+        else // xAPI
+        {
+            foreach ($cmixUsers as $cmixUser) 
+            {
+                $usrIdent = $cmixUser->getUsrIdent();
+                $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];
+            }
         }
+
+        $stage['$and'][] = $activityId;
+        if (count($actor) > 0) {
+            $stage['$and'][] = $actor;
+        }
+        return $stage;
     }
 
     /**
@@ -454,30 +632,53 @@ class ilXapiCmi5StatementsDeleteRequest
     {
         global $DIC;
         $ret = array();
-        $user = "";
+        $obj = $this->getObj();
+        /*
+        $launchDataParams['stateId'] = 'LMS.LaunchData';
+        */
+        $launchDataParams = [];
+        $launchDataParams['activityId'] = $this->activityId;
+        $launchDataParams['activity_id'] = $this->activityId;
+
         if ($this->scope === self::DELETE_SCOPE_FILTERED && $this->filter->getActor()) {
             foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
                 if ($cmixUser->getUsrId() == $this->filter->getActor()->getUsrId()) {
-                    $user = $cmixUser->getUsrIdent();
-                    $ret[] = 'activityId='.urlencode($this->activityId).'&agent='.urlencode('{"mbox":"mailto:'.$user.'"}');
+                    $actor = $obj->getStatementActor($cmixUser);
+                    $launchDataParams['agent'] = json_encode($actor);
+                    $registration = $cmixUser->getRegistration();
+                    if ($registration != '') {
+                        $launchDataParams['registration'] = $registration;
+                    }
+                    ilXapiCmi5AbstractRequest::buildQuery($launchDataParams);
+                    $ret[] = ilXapiCmi5AbstractRequest::buildQuery($launchDataParams);
                 }
             }
         }
-
         if ($this->scope === self::DELETE_SCOPE_OWN) {
             $usrId = ($this->usrId !== NULL) ? $this->usrId : $DIC->user()->getId();
             foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
                 if ((int) $cmixUser->getUsrId() === $usrId) {
-                    $user = $cmixUser->getUsrIdent();
-                    $ret[] = 'activityId='.urlencode($this->activityId).'&agent='.urlencode('{"mbox":"mailto:'.$user.'"}');
+                    $actor = $obj->getStatementActor($cmixUser);
+                    $launchDataParams['agent'] = json_encode($actor);
+                    $registration = $cmixUser->getRegistration();
+                    if ($registration != '') {
+                        $launchDataParams['registration'] = $registration;
+                    }
+                    ilXapiCmi5AbstractRequest::buildQuery($launchDataParams);
+                    $ret[] = ilXapiCmi5AbstractRequest::buildQuery($launchDataParams);
                 }
             }
         }
-
         if ($this->scope === self::DELETE_SCOPE_ALL) {
             foreach (ilXapiCmi5User::getUsersForObject($this->objId) as $cmixUser) {
-                $user = $cmixUser->getUsrIdent();
-                $ret[] = 'activityId='.urlencode($this->activityId).'&agent='.urlencode('{"mbox":"mailto:'.$user.'"}');
+                $actor = $obj->getStatementActor($cmixUser);
+                $launchDataParams['agent'] = json_encode($actor);
+                $registration = $cmixUser->getRegistration();
+                if ($registration != '') {
+                    $launchDataParams['registration'] = $registration;
+                }
+                ilXapiCmi5AbstractRequest::buildQuery($launchDataParams);
+                $ret[] = ilXapiCmi5AbstractRequest::buildQuery($launchDataParams);
             }
         }
         return $ret;
@@ -519,5 +720,27 @@ class ilXapiCmi5StatementsDeleteRequest
                 ilXapiCmi5User::deleteUsersForObject($this->objId, $usrId);
             }
         }
+    }
+
+    /**
+     * @return int
+     */
+    public function getRefId()
+    {
+        return $this->refId;
+    }
+
+    /**
+     * @return ilObjXapiCmi5
+     */
+    public function getObj()
+    {
+        // !!! it is a new cloned data object without parent ilObjPlugin / Object2
+        // getId() will not work!
+        // getRefId() will not work!
+        // .....
+        $obj = new ilObjXapiCmi5();
+        $obj->load($this->objId);
+        return $obj;
     }
 }

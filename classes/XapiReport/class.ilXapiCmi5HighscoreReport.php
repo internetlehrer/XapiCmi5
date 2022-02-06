@@ -2,6 +2,9 @@
 
 /* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
 
+require_once __DIR__.'/../class.ilObjXapiCmi5.php';
+require_once __DIR__.'/../class.ilXapiCmi5User.php';
+require_once __DIR__.'/../class.ilXapiCmi5DateTime.php';
 
 /**
  * Class ilXapiCmi5HighscoreReport
@@ -31,13 +34,19 @@ class ilXapiCmi5HighscoreReport
      * @var ilXapiCmi5User[]
      */
     protected $cmixUsersByIdent;
-    
+
+        /**
+     * @var int
+     */
+    protected $objId;
     /**
-     * ilCmiXapiHighscoreReport constructor.
+     * ilXapiCmi5HighscoreReport constructor.
      * @param string $responseBody
      */
-    public function __construct(string $responseBody, $objId)
+    public function __construct(string $responseBody, $objId, $refId)
     {
+        $this->objId = $objId;
+        $this->refId = $refId;
         $responseBody = json_decode($responseBody, true);
         
         if (count($responseBody)) {
@@ -59,22 +68,57 @@ class ilXapiCmi5HighscoreReport
         global $DIC; /* @var \ILIAS\DI\Container $DIC */
         
         $rows = [];
-        
-        foreach ($this->response as $item) {
-            $userIdent = str_replace('mailto:', '', $item['mbox']);
-            $cmixUser = $this->cmixUsersByIdent[$userIdent];
-            
-            $rows[] = [
-                'user_ident' => $item['mbox'],
-                'user' => '',
-                //'user' => $item['username'],
-                'date' => $this->formatRawTimestamp($item['timestamp']),
-                'duration' => $this->fetchTotalDuration($item['duration']),
-                'score' => $item['score']['scaled'],
-                'ilias_user_id' => $cmixUser->getUsrId()
-            ];
-        }
+        $obj = ilObjXapiCmi5::getInstance($this->refId);
 
+        if ($obj->isMixedContentType())
+        {
+            foreach ($this->response as $item) {
+                $userIdent = str_replace('mailto:', '', $item['mbox']);
+                if (empty($userIdent))
+                {
+                    $userIdent =  $item['account'];
+                }
+                $cmixUser = $this->cmixUsersByIdent[$userIdent];
+                $rows[] = [
+                    'user_ident' => $userIdent,
+                    'user' => '',
+                    'date' => $this->formatRawTimestamp($item['timestamp']),
+                    'duration' => $this->fetchTotalDuration($item['duration']),
+                    'score' => $item['score']['scaled'],
+                    'ilias_user_id' => $cmixUser->getUsrId()
+                ];
+            }
+        }
+        elseif ($obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5)
+        {
+            foreach ($this->response as $item) {
+                $userIdent = $item['account'];
+                $cmixUser = $this->cmixUsersByIdent[$userIdent];
+                $rows[] = [
+                    'user_ident' => $userIdent,
+                    'user' => '',
+                    'date' => $this->formatRawTimestamp($item['timestamp']),
+                    'duration' => $this->fetchTotalDuration($item['duration']),
+                    'score' => $item['score']['scaled'],
+                    'ilias_user_id' => $cmixUser->getUsrId()
+                ];
+            }
+        }
+        else
+        {
+            foreach ($this->response as $item) {
+                $userIdent = str_replace('mailto:', '', $item['mbox']);
+                $cmixUser = $this->cmixUsersByIdent[$userIdent];
+                $rows[] = [
+                    'user_ident' => $userIdent,
+                    'user' => '',
+                    'date' => $this->formatRawTimestamp($item['timestamp']),
+                    'duration' => $this->fetchTotalDuration($item['duration']),
+                    'score' => $item['score']['scaled'],
+                    'ilias_user_id' => $cmixUser->getUsrId()
+                ];
+            }
+        }
         usort($rows, function ($a, $b) {
             return $a['score'] != $b['score'] ? $a['score'] > $b['score'] ? -1 : 1 : 0;
         });
@@ -139,7 +183,7 @@ class ilXapiCmi5HighscoreReport
 
     private function formatRawTimestamp($rawTimestamp)
     {
-        $dateTime = ilCmiXapiDateTime::fromXapiTimestamp($rawTimestamp);
+        $dateTime = ilXapiCmi5DateTime::fromXapiTimestamp($rawTimestamp);
         return ilDatePresentation::formatDate($dateTime);
     }
 

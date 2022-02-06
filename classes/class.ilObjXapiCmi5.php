@@ -3,8 +3,15 @@
  * Copyright (c) 2018 internetlehrer GmbH
  * GPLv2, see LICENSE 
  */
+if ((int)ILIAS_VERSION_NUMERIC < 6) { // only in plugin
+    require_once __DIR__.'/XapiProxy/vendor/autoload.php';
+}
 require_once('./Services/Repository/classes/class.ilObjectPlugin.php');
-require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5Type.php');
+require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5LrsType.php');
+require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5User.php');
+require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5VerbList.php');
+require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5ContentUploadImporter.php');
+require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/XapiReport/class.ilXapiCmi5AbstractRequest.php');
 
 require_once 'Services/Tracking/interfaces/interface.ilLPStatusPlugin.php';
 
@@ -16,185 +23,2289 @@ require_once 'Services/Tracking/interfaces/interface.ilLPStatusPlugin.php';
  */
 class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 {
+    const PLUGIN = true;
 
+    const DB_TABLE_NAME = 'xxcf_settings';
+    const DB_USERS_TABLE_NAME = 'xxcf_users';
+    const DB_RESULTS_TABLE_NAME = 'xxcf_results';
+
+    //PluginSpecific Start
+    //ToDo
 	const ACTIVATION_OFFLINE = 0;
 	const ACTIVATION_UNLIMITED = 1;
-
+    //Learning Progress Plugin
 	const LP_INACTIVE = 0;
-	// const LP_InProgress = 2;
 	const LP_Passed = 1;
 	const LP_Completed = 2;
 	const LP_CompletedAndPassed = 3;
 	const LP_CompletedOrPassed = 4;
 	const LP_UseScore = 8;
 	const LP_NotApplicable = 99;
-	
 	// const LP_Failed = 3;
-	
-	
 	// const LP_ACTIVE = 1;
+	protected $lp_mode = self::LP_INACTIVE;
+
+    const MOVEON_COMPLETED = 'Completed';
+    const MOVEON_PASSED = 'Passed';
+    const MOVEON_COMPLETED_OR_PASSED = 'CompletedOrPassed';
+    const MOVEON_COMPLETED_AND_PASSED = 'CompletedAndPassed';
+    const MOVEON_NOT_APPLICABLE = 'NotApplicable';
+
+    //used for learning analytics
+   	protected $context = null;
 
 	/**
 	 * Content Type definition (object)
 	 */
 	var $typedef;
 
-	/**
-	 * Fields for filling template (list of field arrays)
-	 */
-	protected $fields;
-	protected $availability_type;
-	protected $type_id;
-	protected $instructions;
+	protected $availability_type = false;
+
 	protected $meta_data_xml;
-	protected $context = null;
-	protected $lp_mode = self::LP_INACTIVE;
-	protected $lp_threshold = 0.5;
+    //PluginSpecific END
+
+    // /**
+     // * repository object activation settings (handled by ilObject)
+     // */
+    // protected $activationLimited;
+    // protected $activationStartingTime;
+    // protected $activationEndingTime;
+    // protected $activationVisibility;
+
+
+    /**
+     * @var int
+     */
+    protected $lrsTypeId;
+                              
+    /**
+     * @var ilXapiCmi5LrsType
+     */
+    protected $lrsType;
+    
+    /**
+     * @var string
+     */
+    protected $contentType;
+    const CONT_TYPE_GENERIC = 'generic';
+    const CONT_TYPE_CMI5 = 'cmi5';
+    
+    /**
+     * @var string
+     */
+    protected $sourceType;
+    const SRC_TYPE_REMOTE = 'remoteSource';
+    const SRC_TYPE_LOCAL = 'localSource';
+    const SRC_TYPE_EXTERNAL = 'externalSource';
+
+    /**
+     * @var string
+     */
+    protected $activityId;
+    
+    /**
+     * @var string
+     */
+    protected $publisherId;
+
+    /**
+     * @var string
+     */
+	protected $instructions;
+
+    /**
+     * @var string
+     */
+    protected $launchUrl;
+
+    /**
+     * @var string
+     */
+    protected $launchParameters;
+    
+    /**
+     * @var string
+     */
+    protected $moveOn;
+
+    /**
+     * @var string
+     */
+    protected $entitlementKey;
+
+    /**
+     * @var bool
+     */
+    protected $authFetchUrlEnabled;
+    
+    /**
+     * @var bool;
+     */
+    protected $anonymousHomePage = false;
+    const ANONYMOUS_HOMEPAGE = 'https://example.org';
+
+    /**
+     * @var string
+     */
+    protected $launchMethod;
+    const LAUNCH_METHOD_OWN_WIN = 'ownWin';
+    const LAUNCH_METHOD_NEW_WIN = 'newWin';
+    const LAUNCH_METHOD_IFRAME = 'iframe';
+    
+    /**
+     * @var string
+     */
+    const LAUNCH_METHOD_OWN_WINDOW = 'OwnWindow';
+    const LAUNCH_METHOD_ANY_WINDOW = 'AnyWindow';
+    
+    /**
+     * @var string
+     */
+    protected $launchMode;
+    const LAUNCH_MODE_NORMAL = 'Normal';
+    const LAUNCH_MODE_BROWSE = 'Browse';
+    const LAUNCH_MODE_REVIEW = 'Review';
+    
+    /**
+     * @var bool
+     */
+    protected $switchToReviewEnabled;
+
+    /**
+     * @var float
+     */
+    const LMS_MASTERY_SCORE = 0.7;
+    protected $masteryScore;
+    
+    /**
+     * @var bool
+     */
+    protected $keepLpStatusEnabled;
+    
+    /**
+     * @var string
+     */
+    protected $userIdent;
+    const PRIVACY_IDENT_IL_UUID_USER_ID = 0;
+    const PRIVACY_IDENT_IL_UUID_EXT_ACCOUNT = 1;
+    const PRIVACY_IDENT_IL_UUID_LOGIN = 2;
+    const PRIVACY_IDENT_REAL_EMAIL = 3;
+    const PRIVACY_IDENT_IL_UUID_RANDOM = 4;
+    
+    /**
+     * @var string
+     */
+    protected $userName;
+    const PRIVACY_NAME_NONE = 0;
+    const PRIVACY_NAME_FIRSTNAME = 1;
+    const PRIVACY_NAME_LASTNAME = 2;
+    const PRIVACY_NAME_FULLNAME = 3;
+
+    
+    /**
+     * @var string
+     */
+    protected $userPrivacyComment;
+
     /**
      * @var bool
      */
     protected $statementsReportEnabled;
+
+    /**
+     * @var string
+     */
+    protected $xmlManifest;
     
-	protected $use_fetch = 0;
-	protected $open_mode = 0;
-	protected $privacy_ident = ilXapiCmi5Type::PRIVACY_IDENT_EMAIL;
-	protected $privacy_name = 3;
-	protected $user_object_uid;
-	
-	/** @var bool $only_moveon */
-	private $only_moveon = false;
+    /**
+     * @var int
+     */
+    protected $version;
+    
+    /**
+     * @var bool
+     */
+    protected $bypassProxyEnabled;
+    
+    /** @var bool $only_moveon */
+    protected $only_moveon = false;
 
-	/** @var bool $achieved */
-	private $achieved = true;
+    /** @var bool $achieved */
+    protected $achieved = true;
 
-	/** @var bool $answered */
-	private $answered = true;
+    /** @var bool $answered */
+    protected $answered = true;
 
-	/** @var bool $completed */
-	private $completed = true;
+    /** @var bool $completed */
+    protected $completed = true;
 
-	/** @var bool $failed */
-	private $failed = true;
+    /** @var bool $failed */
+    protected $failed = true;
 
-	/** @var bool $initialized */
-	private $initialized = true;
+    /** @var bool $initialized */
+    protected $initialized = true;
 
-	/** @var bool $passed */
-	private $passed = true;
+    /** @var bool $passed */
+    protected $passed = true;
 
-	/** @var bool $progressed */
-	private $progressed = true;
+    /** @var bool $progressed */
+    protected $progressed = true;
 
-	/** @var bool $satisfied */
-	private $satisfied = true;
+    /** @var bool $satisfied */
+    protected $satisfied = true;
 
-	/** @var bool $terminated */
-	private $terminated = true;
+    /** @var bool $terminated */
+    protected $terminated = true;
 
-	/** @var bool $hide_data */
-	private $hide_data = false;
+    /** @var bool $hide_data */
+    protected $hide_data = false;
 
-	/** @var bool $timestamp */
-	private $timestamp = false;
+    /** @var bool $timestamp */
+    protected $timestamp = false;
 
-	/** @var bool $duration */
-	private $duration = true;
+    /** @var bool $duration */
+    protected $duration = true;
 
-	/** @var bool $no_substatements */
-	private $no_substatements = false;
+    /** @var bool $no_substatements */
+    protected $no_substatements = false;
 
-
+    /** @var ilXapiCmi5User $currentCmixUser */
+    protected $currentCmixUser = null;
 
 	/**
-	 * Constructor
-	 *
-	 * @access public
-	 * 
+	 * ilObjXapiCmi5 constructor.
+     * @param int $a_id
+     * // Beware: ilObjectPlugin only supports ref_id in constructor!
 	 */
-	public function __construct($a_id = 0, $a_call_by_reference = true) {
-		global $ilDB;
+	public function __construct($a_id = 0)
+    {
+        $this->lrsTypeId = 0;
+        //$this->lrsType = $lrsType;
+        
+        $this->contentType = self::CONT_TYPE_GENERIC;
+        $this->sourceType = self::SRC_TYPE_REMOTE;
+        
+        $this->activityId = '';
+        
+        $this->publisherId = '';
 
-		parent::__construct($a_id, $a_call_by_reference);
+        $this->instructions = '';
 
-		$this->db = $ilDB;
-		$this->typedef = new ilXapiCmi5Type();
+        $this->launchUrl = '';
+        $this->launchParameters = '';
+        $this->moveOn = '';
+        $this->entitlementKey = '';
+        
+        $this->authFetchUrlEnabled = 0;
+        
+        $this->launchMethod = self::LAUNCH_METHOD_NEW_WIN;
+        $this->launchMode = self::LAUNCH_MODE_NORMAL;
+
+        $this->switchToReviewEnabled = 1;
+        
+        $this->masteryScore = self::LMS_MASTERY_SCORE;
+        $this->keepLpStatusEnabled = 1;
+        
+        $this->userIdent = self::PRIVACY_IDENT_IL_UUID_USER_ID;
+        $this->userName = self::PRIVACY_NAME_NONE;
+        $this->userPrivacyComment = '';
+
+        $this->currentCmixUser = null;
+
+        $this->statementsReportEnabled = 0;
+
+        $this->xmlManifest = '';
+        $this->version = 0;
+        
+        $this->bypassProxyEnabled = false;
+        // Beware: ilObjectPlugin only supports ref_id in constructor!
+        parent::__construct($a_id);
 	}
+
+
+    public static function getInstance($a_id = 0, $a_reference = true)
+    {
+        return new self($a_id);
+    }
 
 	/**
 	 * Get type.
 	 * The initType() method must set the same ID as the plugin ID.
-	 *
 	 * @access	public
 	 */
-	final public function initType() {
+	final public function initType() 
+    {
 		$this->setType('xxcf');
 	}
 
-	/**
-	 * Set instructions
-	 *
-	 * @param string instructions
-	 */
-	public function setInstructions($a_instructions) {
-		$this->instructions = $a_instructions;
-	}
+
+    /**
+     * @return int
+     */
+    public function getLrsTypeId()
+    {
+        return $this->lrsTypeId;
+    }
+    
+    /**
+     * @param int $lrsTypeId
+     */
+    public function setLrsTypeId($lrsTypeId)
+    {
+        $this->lrsTypeId = $lrsTypeId;
+    }
+    
+    /**
+     * @return ilXapiCmi5LrsType
+     */
+    public function getLrsType()
+    {
+        return $this->lrsType;
+    }
+    
+    /**
+     * @param ilXapiCmi5LrsType $lrsType
+     */
+    public function setLrsType($lrsType)
+    {
+        $this->lrsType = $lrsType;
+    }
+    
+    public function initLrsType()
+    {
+        $this->setLrsType(new ilXapiCmi5LrsType($this->getLrsTypeId()));
+    }
+    
+    /**
+     * @return string
+     */
+    public function getContentType()
+    {
+        return $this->contentType;
+    }
+    
+    /**
+     * @param string $contentType
+     */
+    public function setContentType($contentType)
+    {
+        //bug before 21-07-24
+        if ($contentType == "learning") {
+            $contentType = self::CONT_TYPE_GENERIC;
+        }
+        $this->contentType = $contentType;
+    }
+    
+    /**
+     * @param string $contentType
+     */
+    public function isMixedContentType() : bool
+    {
+        // after 21-07-24 and before cmi5 refactoring
+        // launched before cmi5 refactoring ident in:    statement.actor.mbox 
+        // launched after  cmi5 refactoring ident in:    statement.actor.account.name 
+        return (($this->getContentType() == self::CONT_TYPE_CMI5) && empty($this->getPublisherId()));
+    }
+
+    /**
+     * @return string
+     */
+    public function getSourceType()
+    {
+        return $this->sourceType;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isSourceTypeRemote()
+    {
+        return $this->sourceType == self::SRC_TYPE_REMOTE;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isSourceTypeExternal()
+    {
+        return $this->sourceType == self::SRC_TYPE_EXTERNAL;
+    }
+    
+    /**
+     * @param string $sourceType
+     */
+    public function setSourceType($sourceType)
+    {
+        $this->sourceType = $sourceType;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getActivityId()
+    {
+        return $this->activityId;
+    }
+    
+    /**
+     * @param string $activityId
+     */
+    public function setActivityId($activityId)
+    {
+        $this->activityId = $activityId;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getPublisherId()
+    {
+        return $this->publisherId;
+    }
+    
+    /**
+     * @param string $publisherId
+     */
+    public function setPublisherId($publisherId)
+    {
+        $this->publisherId = $publisherId;
+    }
+
+    /**
+     * @return string
+     */
+    public function getInstructions()
+    {
+        return $this->instructions;
+    }
+    
+    /**
+     * @param string $instructions
+     */
+    public function setInstructions($instructions)
+    {
+        $this->instructions = $instructions;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLaunchUrl()
+    {
+        return $this->launchUrl;
+    }
+    
+    /**
+     * @param string $launchUrl
+     */
+    public function setLaunchUrl($launchUrl)
+    {
+        $this->launchUrl = $launchUrl;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getLaunchParameters()
+    {
+        return $this->launchParameters;
+    }
+    
+    /**
+     * @param string $launchParameters
+     */
+    public function setLaunchParameters($launchParameters)
+    {
+        $this->launchParameters = $launchParameters;
+    }
+
+    /**
+     * @return string
+     * Attention: this is the original imported moveOn
+     * for using in LaunchData and LaunchStatement use getLMSMoveOn!
+     */
+    public function getMoveOn()
+    {
+        return $this->moveOn;
+    }
+
+    /**
+     * @param string $moveOn
+     * Attention: this is the original moveOn from course import
+     * should only be set on import!
+     */
+    public function setMoveOn($moveOn)
+    {
+        $this->moveOn = $moveOn;
+    }
 
 	/**
-	 * Get instructions
+	 * get the learning progress mode
 	 */
-	public function getInstructions() {
-		return $this->instructions;
-	}
-
-	/**
-	 * Set Type Id
-	 *
-	 * @param int type id
-	 */
-	public function setTypeId($a_type_id) {
-		if ($this->type_id != $a_type_id) {
-			$this->typedef = new ilXapiCmi5Type($a_type_id);
-			$this->type_id = $a_type_id;
-		}
-	}
-
-	/**
-	 * Get Type Id
-	 */
-	public function getTypeId() {
-		return $this->type_id;
-	}
-	
-	public function setTypeName($a_type_name) {
-		global $ilDB;
-		$type_id = 0;
-		$query = "SELECT type_id FROM xxcf_data_types where type_name = " . $ilDB->quote($a_type_name, 'text') . " ORDER BY type_id";
-		$res = $ilDB->query($query);
-		while ($row = $ilDB->fetchAssoc($res)) {
-			$type_id = $row['type_id'];
-		}
-		if ($type_id != 0) {
-			$this->setTypeId($type_id);
-			$typedef = new ilXapiCmi5Type($this->getTypeId());
-			$typedef->setName($a_type_name);
-		}
-	}
-	/**
-	 * Get Type Name for Export/Import
-	 */
-	public function getTypeName() {
-		$typedef = new ilXapiCmi5Type($this->getTypeId());
-		return $typedef->getName();
+	public function getLPMode()
+    {
+		return $this->lp_mode;
 	}
 
     /**
-	 * Get LrsType
-	 */
-	public function getLrsType() {
-		$typedef = new ilXapiCmi5Type($this->getTypeId());
-		return $typedef;
+     * @return string ilXapiCmi5LP::const
+     * for CMI5 statements | state moveOn values
+     */
+    public function getLMSMoveOn()
+    {
+        //TODO!!
+        // $moveOn = ilXapiCmi5LP::MOVEON_NOT_APPLICABLE;
+        // switch ($this->getLPMode())
+        // {
+            // case ilLPObjSettings::LP_MODE_DEACTIVATED :
+                // $moveOn = ilCmiXapiLP::MOVEON_NOT_APPLICABLE;
+            // break;
+            // case ilLPObjSettings::LP_MODE_CMIX_COMPLETED :
+            // case ilLPObjSettings::LP_MODE_CMIX_COMPL_WITH_FAILED :
+                // $moveOn = ilCmiXapiLP::MOVEON_COMPLETED;
+            // break;
+            // case ilLPObjSettings::LP_MODE_CMIX_PASSED :
+            // case ilLPObjSettings::LP_MODE_CMIX_PASSED_WITH_FAILED :
+                // $moveOn = ilCmiXapiLP::MOVEON_PASSED;
+            // break;
+                // case ilLPObjSettings::LP_MODE_CMIX_COMPLETED_OR_PASSED :
+                // case ilLPObjSettings::LP_MODE_CMIX_COMPL_OR_PASSED_WITH_FAILED :
+                // $moveOn = ilCmiXapiLP::MOVEON_COMPLETED_OR_PASSED;
+            // break;
+        // }
+        // return $moveOn;
+    }
+
+    /**
+     * @return string
+     */
+    public function getEntitlementKey()
+    {
+        return $this->entitlementKey;
+    }
+
+    /**
+     * @param string $entitlementKey
+     */
+    public function setEntitlementKey($entitlementKey)
+    {
+        $this->entitlementKey = $entitlementKey;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAuthFetchUrlEnabled()
+    {
+        return $this->authFetchUrlEnabled;
     }
     
+    /**
+     * @param bool $authFetchUrlEnabled
+     */
+    public function setAuthFetchUrlEnabled($authFetchUrlEnabled)
+    {
+        $this->authFetchUrlEnabled = $authFetchUrlEnabled;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLaunchMethod()
+    {
+        return $this->launchMethod;
+    }
+    
+    /**
+     * @param string $launchMethod
+     */
+    public function setLaunchMethod($launchMethod)
+    {
+        $this->launchMethod = $launchMethod;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getLaunchMode()
+    {
+        return ucfirst($this->launchMode);
+    }
+    
+    /**
+     * @param string $launchMode
+     */
+    public function setLaunchMode($launchMode)
+    {
+        $this->launchMode = ucfirst($launchMode);
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isSwitchToReviewEnabled()
+    {
+        return $this->switchToReviewEnabled;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function getSwitchToReviewEnabled()
+    {
+        return $this->switchToReviewEnabled;
+    }
+    
+    /**
+     * @param bool $switchToReviewEnabled
+     */
+    public function setSwitchToReviewEnabled($switchToReviewEnabled)
+    {
+        $this->switchToReviewEnabled = $switchToReviewEnabled;
+    }
+
+    /**
+     * @return float
+     */
+    public function getMasteryScore()
+    {
+        return $this->masteryScore;
+    }
+    
+    /**
+     * @param float $masteryScore
+     */
+    public function setMasteryScore($masteryScore)
+    {
+        $this->masteryScore = $masteryScore;
+    }
+
+    /**
+     * @return float
+     */
+    public function getMasteryScorePercent()
+    {
+        return $this->masteryScore * 100;
+    }
+    
+    /**
+     * @param float $masteryScorePercent
+     */
+    public function setMasteryScorePercent($masteryScorePercent)
+    {
+        $this->masteryScore = $masteryScorePercent / 100;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isKeepLpStatusEnabled()
+    {
+        return $this->keepLpStatusEnabled;
+    }
+
+    /**
+     * @param bool $keepLpStatusEnabled
+     */
+    public function setKeepLpStatusEnabled($keepLpStatusEnabled)
+    {
+        $this->keepLpStatusEnabled = $keepLpStatusEnabled;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPrivacyIdent()
+    {
+        return $this->userIdent;
+    }
+    
+    /**
+     * @param string $userIdent
+     */
+    public function setPrivacyIdent($userIdent)
+    {
+        $this->userIdent = $userIdent;
+    }
+    
+    /**
+     * @return string
+     */
+    public function getPrivacyName()
+    {
+        return $this->userName;
+    }
+    
+    /**
+     * @param string $userName
+     */
+    public function setPrivacyName($userName)
+    {
+        $this->userName = $userName;
+    }
+	
+	/**
+	 * @return bool
+	 */
+	public function getOnlyMoveon(): bool
+	{
+		return $this->only_moveon;
+	}
+
+	/**
+	 * @param bool $only_moveon
+	 */
+	public function setOnlyMoveon(bool $only_moveon)
+	{
+		$this->only_moveon = $only_moveon;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getAchieved(): bool
+	{
+		return $this->achieved;
+	}
+
+	/**
+	 * @param bool $achieved
+	 */
+	public function setAchieved(bool $achieved)
+	{
+		$this->achieved = $achieved;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getAnswered(): bool
+	{
+		return $this->answered;
+	}
+
+	/**
+	 * @param bool $answered
+	 */
+	public function setAnswered(bool $answered)
+	{
+		$this->answered = $answered;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getCompleted(): bool
+	{
+		return $this->completed;
+	}
+
+	/**
+	 * @param bool $completed
+	 */
+	public function setCompleted(bool $completed)
+	{
+		$this->completed = $completed;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getFailed(): bool
+	{
+		return $this->failed;
+	}
+
+	/**
+	 * @param bool $failed
+	 */
+	public function setFailed(bool $failed)
+	{
+		$this->failed = $failed;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getInitialized(): bool
+	{
+		return $this->initialized;
+	}
+
+	/**
+	 * @param bool $initialized
+	 */
+	public function setInitialized(bool $initialized)
+	{
+		$this->initialized = $initialized;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getPassed(): bool
+	{
+		return $this->passed;
+	}
+
+	/**
+	 * @param bool $passed
+	 */
+	public function setPassed(bool $passed)
+	{
+		$this->passed = $passed;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getProgressed(): bool
+	{
+		return $this->progressed;
+	}
+
+	/**
+	 * @param bool $progressed
+	 */
+	public function setProgressed(bool $progressed)
+	{
+		$this->progressed = $progressed;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getSatisfied(): bool
+	{
+		return $this->satisfied;
+	}
+
+	/**
+	 * @param bool $satisfied
+	 */
+	public function setSatisfied(bool $satisfied)
+	{
+		$this->satisfied = $satisfied;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getTerminated(): bool
+	{
+		return $this->terminated;
+	}
+
+	/**
+	 * @param bool $terminated
+	 */
+	public function setTerminated(bool $terminated)
+	{
+		$this->terminated = $terminated;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getHideData(): bool
+	{
+		return $this->hide_data;
+	}
+
+	/**
+	 * @param bool $hide_data
+	 */
+	public function setHideData(bool $hide_data)
+	{
+		$this->hide_data = $hide_data;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getTimestamp(): bool
+	{
+		return $this->timestamp;
+	}
+
+	/**
+	 * @param bool $timestamp
+	 */
+	public function setTimestamp(bool $timestamp)
+	{
+		$this->timestamp = $timestamp;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getDuration(): bool
+	{
+		return $this->duration;
+	}
+
+	/**
+	 * @param bool $duration
+	 */
+	public function setDuration(bool $duration)
+	{
+		$this->duration = $duration;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function getNoSubstatements(): bool
+	{
+		return $this->no_substatements;
+	}
+
+	/**
+	 * @param bool $no_substatements
+	 */
+	public function setNoSubstatements(bool $no_substatements)
+	{
+		$this->no_substatements = $no_substatements;
+	}
+
+    /**
+     * @return string
+     */
+    public function getUserPrivacyComment()
+    {
+        return $this->userPrivacyComment;
+    }
+    
+    /**
+     * @param string $userPrivacyComment
+     */
+    public function setUserPrivacyComment($userPrivacyComment)
+    {
+        $this->userPrivacyComment = $userPrivacyComment;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isStatementsReportEnabled()
+    {
+        return $this->statementsReportEnabled;
+    }
+    
+    /**
+     * @param bool $statementsReportEnabled
+     */
+    public function setStatementsReportEnabled($statementsReportEnabled)
+    {
+        $this->statementsReportEnabled = $statementsReportEnabled;
+    }
+
+    /**
+     * @return string
+     */
+    public function getXmlManifest()
+    {
+        return $this->xmlManifest;
+    }
+    
+    /**
+     * @param string $xmlManifest
+     */
+    public function setXmlManifest($xmlManifest)
+    {
+        $this->xmlManifest = $xmlManifest;
+    }
+    
+    /**
+     * @return int
+     */
+    public function getVersion()
+    {
+        return $this->version;
+    }
+    
+    /**
+     * @param int $version
+     */
+    public function setVersion($version)
+    {
+        $this->version = $version;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function isBypassProxyEnabled() : bool
+    {
+        return $this->bypassProxyEnabled;
+    }
+    
+    /**
+     * @param bool $bypassProxyEnabled
+     */
+    public function setBypassProxyEnabled(bool $bypassProxyEnabled)
+    {
+        $this->bypassProxyEnabled = $bypassProxyEnabled;
+    }
+
+    public function doRead()
+    {
+        $this->load();
+    }
+                                                                        
+    public function load($a_id = 0)
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $id = ((int)$a_id === 0) ? $this->getId() : $a_id;
+        $query = "SELECT * FROM " . self::DB_TABLE_NAME . " WHERE obj_id = %s";
+        $res = $DIC->database()->queryF($query, ['integer'], [$id]);
+        
+        while ($row = $DIC->database()->fetchAssoc($res)) {
+            if ($row['lrs_type_id']) {
+                $this->setLrsTypeId((int) $row['lrs_type_id']);
+                $this->initLrsType();
+            }
+            $this->setAvailabilityType((int) $row['availability_type']);//PluginSpecific
+			$this->setMetaDataXML($row['meta_data_xml']);//PluginSpecific
+            $this->setLPMode($row['lp_mode']);//PluginSpecific
+            
+            $this->setContentType($row['content_type']);
+            $this->setSourceType($row['source_type']);
+            
+            $this->setActivityId($row['activity_id']);
+            $this->setPublisherId($row['publisher_id']);
+            $this->setInstructions($row['instructions']);
+            
+            $this->setLaunchUrl($row['launch_url']);
+            $this->setLaunchParameters($row['launch_parameters']);
+            $this->setMoveOn($row['moveon']);
+            $this->setEntitlementKey($row['entitlement_key']);
+            $this->setAuthFetchUrlEnabled((bool) $row['auth_fetch_url']);
+            
+            $this->setLaunchMethod($row['launch_method']);
+            
+            $this->setLaunchMode($row['launch_mode']);
+            $this->setSwitchToReviewEnabled((bool) $row['switch_to_review']);
+            $this->setMasteryScore((float) $row['mastery_score']);
+            $this->setKeepLpStatusEnabled((bool) $row['keep_lp']);
+                                                             
+            $this->setPrivacyIdent($row['privacy_ident']);
+            $this->setPrivacyName($row['privacy_name']);
+
+            $this->setOnlyMoveon((bool) $row['only_moveon']);
+            $this->setAchieved((bool) $row['achieved']);
+            $this->setAnswered((bool) $row['answered']);
+            $this->setCompleted((bool) $row['completed']);
+            $this->setFailed((bool) $row['failed']);
+            $this->setInitialized((bool) $row['initialized']);
+            $this->setPassed((bool) $row['passed']);
+            $this->setProgressed((bool) $row['progressed']);
+            $this->setSatisfied((bool) $row['satisfied']);
+            $this->setTerminated((bool) $row['c_terminated']);
+            $this->setHideData((bool) $row['hide_data']);
+            $this->setTimestamp((bool) $row['c_timestamp']);
+            $this->setDuration((bool) $row['duration']);
+            $this->setNoSubstatements((bool) $row['no_substatements']);
+
+            $this->setUserPrivacyComment($row['usr_privacy_comment']);
+            
+            $this->setStatementsReportEnabled((bool) $row['show_statements']);
+            
+            $this->setXmlManifest($row['xml_manifest']);
+            $this->setVersion((int) $row['version']);
+            
+            $this->setBypassProxyEnabled((bool) $row['bypass_proxy']);
+
+            $this->setHighscoreEnabled((bool) $row['highscore_enabled']);
+            $this->setHighscoreAchievedTS((bool) $row['highscore_achieved_ts']);
+            $this->setHighscorePercentage((bool) $row['highscore_percentage']);
+            $this->setHighscoreWTime((bool) $row['highscore_wtime']);
+            $this->setHighscoreOwnTable((bool) $row['highscore_own_table']);
+            $this->setHighscoreTopTable((bool) $row['highscore_top_table']);
+            $this->setHighscoreTopNum((int) $row['highscore_top_num']);
+        }
+        
+        //$this->loadRepositoryActivationSettings();
+    }
+    
+    public function doUpdate()
+    {
+        $this->save();
+    }
+    
+    public function save()
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $DIC->database()->replace(self::DB_TABLE_NAME, [
+            'obj_id' => ['integer', $this->getId()]
+        ], [
+            'availability_type' => ['integer', (int) $this->getAvailabilityType()],//PluginSpecific
+            'meta_data_xml' => ['text', $this->getMetaDataXML()],//PluginSpecific
+            'lp_mode' => ['text', $this->getLPMode()],//PluginSpecific_TODO
+            'lrs_type_id' => ['integer', $this->getLrsTypeId()],
+            'content_type' => ['text', $this->getContentType()],
+            'source_type' => ['text', $this->getSourceType()],
+            'activity_id' => ['text', $this->getActivityId()],
+            'publisher_id' => ['text', $this->getPublisherId()],
+            'instructions' => ['text', $this->getInstructions()],
+            'launch_url' => ['text', $this->getLaunchUrl()],
+            'launch_parameters' => ['text', $this->getLaunchParameters()],
+            'moveon' => ['text', $this->getMoveOn()],
+            'entitlement_key' => ['text', $this->getEntitlementKey()],
+            'auth_fetch_url' => ['integer', (int) $this->isAuthFetchUrlEnabled()],
+            'launch_method' => ['text', $this->getLaunchMethod()],
+            'launch_mode' => ['text', $this->getLaunchMode()],
+            'switch_to_review' => ['integer', (int) $this->isSwitchToReviewEnabled()],
+            'mastery_score' => ['float', $this->getMasteryScore()],
+            'keep_lp' => ['integer', (int) $this->isKeepLpStatusEnabled()],
+            'privacy_ident' => ['integer', $this->getPrivacyIdent()],
+            'privacy_name' => ['integer', $this->getPrivacyName()],
+            'usr_privacy_comment' => ['text', $this->getUserPrivacyComment()],
+            'show_statements' => ['integer', (int) $this->isStatementsReportEnabled()],
+            'xml_manifest' => ['text', $this->getXmlManifest()],
+            'version' => ['integer', $this->getVersion()],
+            'bypass_proxy' => ['integer', (int) $this->isBypassProxyEnabled()],
+            'highscore_enabled' => ['integer', (int) $this->getHighscoreEnabled()],
+            'highscore_achieved_ts' => ['integer', (int) $this->getHighscoreAchievedTS()],
+            'highscore_percentage' => ['integer', (int) $this->getHighscorePercentage()],
+            'highscore_wtime' => ['integer', (int) $this->getHighscoreWTime()],
+            'highscore_own_table' => ['integer', (int) $this->getHighscoreOwnTable()],
+            'highscore_top_table' => ['integer', (int) $this->getHighscoreTopTable()],
+            'highscore_top_num' => ['integer', (int) $this->getHighscoreTopNum()],
+            'only_moveon' => ['integer', (int)$this->getOnlyMoveon()],
+            'achieved' => ['integer', (int)$this->getAchieved()],
+            'answered' => ['integer', (int)$this->getAnswered()],
+            'completed' => ['integer', (int)$this->getCompleted()],
+            'failed' => ['integer', (int)$this->getFailed()],
+            'initialized' => ['integer', (int)$this->getInitialized()],
+            'passed' => ['integer', (int)$this->getPassed()],
+            'progressed' => ['integer', (int)$this->getProgressed()],
+            'satisfied' => ['integer', (int)$this->getSatisfied()],
+            'c_terminated' => ['integer', (int)$this->getTerminated()],
+            'hide_data' => ['integer', (int)$this->getHideData()],
+            'c_timestamp' => ['integer', (int)$this->getTimestamp()],
+            'duration' => ['integer', (int)$this->getDuration()],
+            'no_substatements' => ['integer', (int)$this->getNoSubstatements()]
+        ]);
+        
+        //$this->saveRepositoryActivationSettings();
+    }
+    
+    protected function loadRepositoryActivationSettings()
+    {
+        if ($this->ref_id) {
+            include_once "./Services/Object/classes/class.ilObjectActivation.php";
+            $activation = ilObjectActivation::getItem($this->ref_id);
+            switch ($activation["timing_type"]) {
+                case ilObjectActivation::TIMINGS_ACTIVATION:
+                    $this->setActivationLimited(true);
+                    $this->setActivationStartingTime($activation["timing_start"]);
+                    $this->setActivationEndingTime($activation["timing_end"]);
+                    $this->setActivationVisibility($activation["visible"]);
+                    break;
+                
+                default:
+                    $this->setActivationLimited(false);
+                    break;
+            }
+        }
+    }
+    
+    protected function saveRepositoryActivationSettings()
+    {
+        if ($this->ref_id) {
+            include_once "./Services/Object/classes/class.ilObjectActivation.php";
+            ilObjectActivation::getItem($this->ref_id);
+            
+            $item = new ilObjectActivation;
+            if (!$this->isActivationLimited()) {
+                $item->setTimingType(ilObjectActivation::TIMINGS_DEACTIVATED);
+            } else {
+                $item->setTimingType(ilObjectActivation::TIMINGS_ACTIVATION);
+                $item->setTimingStart($this->getActivationStartingTime());
+                $item->setTimingEnd($this->getActivationEndingTime());
+                $item->toggleVisible($this->getActivationVisibility());
+            }
+            
+            $item->update($this->ref_id);
+        }
+    }
+
+    public static function updatePrivacySettingsFromLrsType(ilXapiCmi5LrsType $lrsType)
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+
+        $tableName = self::DB_TABLE_NAME;
+                                         
+        $query = "
+			UPDATE {$tableName}
+			SET privacy_ident = %s, 
+                privacy_name = %s, 
+                only_moveon = %s, 
+                achieved = %s, 
+                answered = %s, 
+                completed = %s, 
+                failed = %s, 
+                initialized = %s, 
+                passed = %s, 
+                progressed = %s, 
+                satisfied = %s, 
+                c_terminated = %s, 
+                hide_data = %s, 
+                c_timestamp = %s, 
+                duration = %s, 
+                no_substatements = %s
+            WHERE lrs_type_id = %s
+		";
+        
+        $DIC->database()->manipulateF(
+            $query,
+            ['integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer',
+             'integer'
+            ],
+            [$lrsType->getPrivacyIdent(),
+             $lrsType->getPrivacyName(),
+             $lrsType->getOnlyMoveon(),
+             $lrsType->getAchieved(),
+             $lrsType->getAnswered(),
+             $lrsType->getCompleted(),
+             $lrsType->getFailed(),
+             $lrsType->getInitialized(),
+             $lrsType->getPassed(),
+             $lrsType->getProgressed(),
+             $lrsType->getSatisfied(),
+             $lrsType->getTerminated(),
+             $lrsType->getHideData(),
+             $lrsType->getTimestamp(),
+             $lrsType->getDuration(),
+             $lrsType->getNoSubstatements(),
+             $lrsType->getTypeId()
+            ]
+        );
+    }
+
+    public static function updateByPassProxyFromLrsType(ilXapiCmi5LrsType $lrsType)
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $tableName = self::DB_TABLE_NAME;
+        
+        $query = "
+			UPDATE {$tableName}
+			SET bypass_proxy = %s
+			WHERE lrs_type_id = %s
+		";
+        
+        $DIC->database()->manipulateF(
+            $query,
+            ['integer', 'integer'],
+            [$lrsType->isBypassProxyEnabled(), $lrsType->getTypeId()]
+        );
+    }
+
+    public static function getObjectsHavingBypassProxyEnabledAndRegisteredUsers()
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+                                            
+        $query = "
+			SELECT DISTINCT s.obj_id FROM " . self::DB_TABLE_NAME . " s
+			INNER JOIN " . self::DB_USERS_TABLE_NAME . " u ON u.obj_id = s.obj_id
+			WHERE bypass_proxy = %s
+		";
+        
+        $res = $DIC->database()->queryF($query, array('integer'), array(1));
+                                                                
+        $objects = array();
+                                 
+        while ($row = $DIC->database()->fetchAssoc($res)) {
+            $objects[] = $row['obj_id'];
+        }
+
+        return $objects;
+    }
+
+
+
+    /////////////////////////////////////////
+    /// HIGHSCORE
+
+    /**
+     * @var int
+     */
+    protected $_highscore_enabled = 0;
+
+
+    /**
+     * @var int
+     */
+    protected $anonymity = 0;
+
+    /**
+     * @var int
+     */
+    protected $_highscore_achieved_ts = 1;
+
+    /**
+     * @var int
+     */
+    protected $_highscore_percentage = 1;
+
+    /**
+     * @var int
+     */
+    protected $_highscore_wtime = 1;
+
+    /**
+     * @var int
+     */
+    protected $_highscore_own_table = 1;
+
+    /**
+     * @var int
+     */
+    protected $_highscore_top_table = 1;
+
+    /**
+     * @var int
+     */
+    protected $_highscore_top_num = 10;
+    
+    const HIGHSCORE_SHOW_ALL_TABLES = 1;
+    const HIGHSCORE_SHOW_TOP_TABLE = 2;
+    const HIGHSCORE_SHOW_OWN_TABLE = 3;
+    
+    
+    
+    /**
+     * Sets if the highscore feature should be enabled.
+     *
+     * @param bool $a_enabled
+     */
+    public function setHighscoreEnabled($a_enabled)
+    {
+        $this->_highscore_enabled = (bool) $a_enabled;
+    }
+
+    /**
+     * Gets the setting which determines if the highscore feature is enabled.
+     *
+     * @return bool True, if highscore is enabled.
+     */
+    public function getHighscoreEnabled()
+    {
+        return (bool) $this->_highscore_enabled;
+    }
+
+    /**
+     * Sets if the date and time of the scores achievement should be displayed.
+     *
+     * @param bool $a_achieved_ts
+     */
+    public function setHighscoreAchievedTS($a_achieved_ts)
+    {
+        $this->_highscore_achieved_ts = (bool) $a_achieved_ts;
+    }
+
+    /**
+     * Returns if date and time of the scores achievement should be displayed.
+     *
+     * @return bool True, if column should be shown.
+     */
+    public function getHighscoreAchievedTS()
+    {
+        return (bool) $this->_highscore_achieved_ts;
+    }
+
+    /**
+     * Sets if the percentages of the scores pass should be shown.
+     *
+     * @param bool $a_percentage
+     */
+    public function setHighscorePercentage($a_percentage)
+    {
+        $this->_highscore_percentage = (bool) $a_percentage;
+    }
+
+    /**
+     * Gets if the percentage column should be shown.
+     *
+     * @return bool True, if percentage column should be shown.
+     */
+    public function getHighscorePercentage()
+    {
+        return (bool) $this->_highscore_percentage;
+    }
+
+    /**
+     * Sets if the workingtime of the scores should be shown.
+     *
+     * @param bool $a_wtime
+     */
+    public function setHighscoreWTime($a_wtime)
+    {
+        $this->_highscore_wtime = (bool) $a_wtime;
+    }
+
+    /**
+     * Gets if the column with the workingtime should be shown.
+     *
+     * @return bool True, if the workingtime column should be shown.
+     */
+    public function getHighscoreWTime()
+    {
+        return (bool) $this->_highscore_wtime;
+    }
+
+    /**
+     * Sets if the table with the own ranking should be shown.
+     *
+     * @param bool $a_own_table True, if table with own ranking should be shown.
+     */
+    public function setHighscoreOwnTable($a_own_table)
+    {
+        $this->_highscore_own_table = (bool) $a_own_table;
+    }
+
+    /**
+     * Gets if the own rankings table should be shown.
+     *
+     * @return bool True, if the own rankings table should be shown.
+     */
+    public function getHighscoreOwnTable()
+    {
+        return (bool) $this->_highscore_own_table;
+    }
+
+    /**
+     * Sets if the top-rankings table should be shown.
+     *
+     * @param bool $a_top_table
+     */
+    public function setHighscoreTopTable($a_top_table)
+    {
+        $this->_highscore_top_table = (bool) $a_top_table;
+    }
+
+    /**
+     * Gets, if the top-rankings table should be shown.
+     *
+     * @return bool True, if top-rankings table should be shown.
+     */
+    public function getHighscoreTopTable()
+    {
+        return (bool) $this->_highscore_top_table;
+    }
+
+    /**
+     * Sets the number of entries which are to be shown in the top-rankings
+     * table.
+     *
+     * @param integer $a_top_num Number of entries in the top-rankings table.
+     */
+    public function setHighscoreTopNum($a_top_num)
+    {
+        $this->_highscore_top_num = (int) $a_top_num;
+    }
+
+    /**
+     * Gets the number of entries which are to be shown in the top-rankings table.
+     * Default: 10 entries
+     *
+     * @param integer $a_retval Optional return value if nothing is set, defaults to 10.
+     *
+     * @return integer Number of entries to be shown in the top-rankings table.
+     */
+    public function getHighscoreTopNum($a_retval = 10)
+    {
+        $retval = $a_retval;
+        if ((int) $this->_highscore_top_num != 0) {
+            $retval = $this->_highscore_top_num;
+        }
+
+        return $retval;
+    }
+
+    /**
+     * @return int
+     */
+    public function getHighscoreMode()
+    {
+        switch (true) {
+            case $this->getHighscoreOwnTable() && $this->getHighscoreTopTable():
+                return self::HIGHSCORE_SHOW_ALL_TABLES;
+
+            case $this->getHighscoreTopTable():
+                return self::HIGHSCORE_SHOW_TOP_TABLE;
+
+            case $this->getHighscoreOwnTable():
+            default:
+                return self::HIGHSCORE_SHOW_OWN_TABLE;
+        }
+    }
+
+    /**
+     * @param $mode int
+     */
+    public function setHighscoreMode($mode)
+    {
+        switch ($mode) {
+            case self::HIGHSCORE_SHOW_ALL_TABLES:
+                $this->setHighscoreTopTable(1);
+                $this->setHighscoreOwnTable(1);
+                break;
+
+            case self::HIGHSCORE_SHOW_TOP_TABLE:
+                $this->setHighscoreTopTable(1);
+                $this->setHighscoreOwnTable(0);
+                break;
+
+            case self::HIGHSCORE_SHOW_OWN_TABLE:
+            default:
+                $this->setHighscoreTopTable(0);
+                $this->setHighscoreOwnTable(1);
+                break;
+        }
+    }
+
+    /* End GET/SET for highscore feature*/
+
+
+    public function getDataSetMapping()
+    {
+        if (null === ($lrsTypeId = $this->getLrsTypeId())) {
+            $this->doRead();
+        }
+        $mapping = [
+            'obj_id' => $this->getId(),
+            'lrs_type_id' => $this->getLrsTypeId(),
+            'content_type' => $this->getContentType(),
+            'source_type' => $this->getSourceType(),
+            'activity_id' => $this->getActivityId(),
+            'publisher_id' => $this->getPublisherId(),
+            'instructions' => $this->getInstructions(),
+            'launch_url' => $this->getLaunchUrl(),
+            'launch_parameters' => $this->getLaunchParameters(),
+            'moveon' => $this->getMoveOn(),
+            'entitlement_key' => $this->getEntitlementKey(),
+            'auth_fetch_url' => (int) $this->isAuthFetchUrlEnabled(),
+            'launch_method' => $this->getLaunchMethod(),
+            'launch_mode' => $this->getLaunchMode(),
+            'switch_to_review' => (int) $this->isSwitchToReviewEnabled(),
+            'mastery_score' => $this->getMasteryScore(),
+            'keep_lp' => (int) $this->isKeepLpStatusEnabled(),
+            'privacy_ident' => $this->getPrivacyIdent(),
+            'privacy_name' => $this->getPrivacyName(),
+            'usr_privacy_comment' => $this->getUserPrivacyComment(),
+            'show_statements' => (int) $this->isStatementsReportEnabled(),
+            'xml_manifest' => $this->getXmlManifest(),
+            'version' => $this->getVersion(),
+            'highscore_enabled' => (int) $this->getHighscoreEnabled(),
+            'highscore_achieved_ts' => (int) $this->getHighscoreAchievedTS(),
+            'highscore_percentage' => (int) $this->getHighscorePercentage(),
+            'highscore_wtime' => (int) $this->getHighscoreWTime(),
+            'highscore_own_table' => (int) $this->getHighscoreOwnTable(),
+            'highscore_top_table' => (int) $this->getHighscoreTopTable(),
+            'highscore_top_num' => (int) $this->getHighscoreTopNum(),
+            'only_moveon' => (int) $this->getOnlyMoveon(),
+            'achieved' => (int) $this->getAchieved(),
+            'answered' => (int) $this->getAnswered(),
+            'completed' => (int) $this->getCompleted(),
+            'failed' => (int) $this->getFailed(),
+            'initialized' => (int) $this->getInitialized(),
+            'passed' => (int) $this->getPassed(),
+            'progressed' => (int) $this->getProgressed(),
+            'satisfied' => (int) $this->getSatisfied(),
+            'c_terminated' => (int) $this->getTerminated(),
+            'hide_data' => (int) $this->getHideData(),
+            'c_timestamp' => (int) $this->getTimestamp(),
+            'duration' => (int) $this->getDuration(),
+            'no_substatements' => (int) $this->getNoSubstatements()
+			//'bypass_proxy' => (int) $this->isBypassProxyEnabled()
+        ];
+        return $mapping;
+    }
+
+	 /**
+     * Clone object
+     *
+     * @access public
+     * @param int ref_id of target container
+     * @param int copy id
+     */
+	protected function doCloneObject($new_obj, $a_target_id, $a_copy_id = null, $a_omit_tree = false)
+    {
+		global $DIC; /* @var \ILIAS\DI\Container $DIC */
+		
+        $new_obj->setAvailabilityType($this->getAvailabilityType());//PluginSpecific
+        $new_obj->setMetaDataXML($this->getMetaDataXML());//PluginSpecific
+
+		$new_obj->setLrsTypeId($this->getLrsTypeId());
+		$new_obj->setContentType($this->getContentType());
+		$new_obj->setSourceType($this->getSourceType());
+        $new_obj->setActivityId($this->getActivityId());
+        $new_obj->setPublisherId($this->getPublisherId());
+		$new_obj->setInstructions($this->getInstructions());
+        $new_obj->setLaunchUrl($this->getLaunchUrl());
+        $new_obj->setLaunchParameters($this->getLaunchParameters());
+        $new_obj->setMoveOn($this->getMoveOn());
+        $new_obj->setEntitlementKey($this->getEntitlementKey());
+		$new_obj->setAuthFetchUrlEnabled($this->isAuthFetchUrlEnabled());
+		$new_obj->setLaunchMethod($this->getLaunchMethod());
+        $new_obj->setLaunchMode($this->getLaunchMode());
+        $new_obj->setSwitchToReviewEnabled($this->isSwitchToReviewEnabled());
+		$new_obj->setMasteryScore($this->getMasteryScore());
+		$new_obj->setKeepLpStatusEnabled($this->isKeepLpStatusEnabled());
+		$new_obj->setPrivacyIdent($this->getPrivacyIdent());
+		$new_obj->setPrivacyName($this->getPrivacyName());
+		$new_obj->setUserPrivacyComment($this->getUserPrivacyComment());
+		$new_obj->setStatementsReportEnabled($this->isStatementsReportEnabled());
+		$new_obj->setXmlManifest($this->getXmlManifest());
+		$new_obj->setVersion($this->getVersion());
+		$new_obj->setHighscoreEnabled($this->getHighscoreEnabled());
+		$new_obj->setHighscoreAchievedTS($this->getHighscoreAchievedTS());
+		$new_obj->setHighscorePercentage($this->getHighscorePercentage());
+		$new_obj->setHighscoreWTime($this->getHighscoreWTime());
+		$new_obj->setHighscoreOwnTable($this->getHighscoreOwnTable());
+		$new_obj->setHighscoreTopTable($this->getHighscoreTopTable());
+		$new_obj->setHighscoreTopNum($this->getHighscoreTopNum());
+		$new_obj->setBypassProxyEnabled($this->isBypassProxyEnabled());
+        $new_obj->setOnlyMoveon($this->getOnlyMoveon());
+        $new_obj->setAchieved($this->getAchieved());
+        $new_obj->setAnswered($this->getAnswered());
+        $new_obj->setCompleted($this->getCompleted());
+        $new_obj->setFailed($this->getFailed());
+        $new_obj->setInitialized($this->getInitialized());
+        $new_obj->setPassed($this->getPassed());
+        $new_obj->setProgressed($this->getProgressed());
+        $new_obj->setSatisfied($this->getSatisfied());
+        $new_obj->setTerminated($this->getTerminated());
+        $new_obj->setHideData($this->getHideData());
+        $new_obj->setTimestamp($this->getTimestamp());
+        $new_obj->setDuration($this->getDuration());
+        $new_obj->setNoSubstatements($this->getNoSubstatements());
+        $new_obj->update();
+		
+		if ($this->getSourceType() == self::SRC_TYPE_LOCAL) {
+		    $dirUtil = new ilXapiCmi5ContentUploadImporter($new_obj);
+			$dirUtil->ensureCreatedObjectDirectory();
+			$newDir = implode(DIRECTORY_SEPARATOR, [\ilUtil::getWebspaceDir(), $dirUtil->getWebDataDirRelativeObjectDirectory()]);
+			$dirUtil = new ilXapiCmi5ContentUploadImporter($this);
+			$thisDir = implode(DIRECTORY_SEPARATOR, [\ilUtil::getWebspaceDir(), $dirUtil->getWebDataDirRelativeObjectDirectory()]);
+			ilUtil::rCopy($thisDir, $newDir);
+		}
+	}
+
+	protected function doDelete()
+    {
+        global $DIC;
+        $ilDB = $DIC['ilDB'];
+		
+        // delete file data entry
+		$query = "DELETE FROM " . self::DB_TABLE_NAME . " WHERE obj_id = " . $ilDB->quote($this->getId(), 'integer');
+		$ilDB->manipulate($query);
+
+        // delete history entries
+        require_once("./Services/History/classes/class.ilHistory.php");
+        ilHistory::_removeEntriesForObject($this->getId());
+
+        // delete entire directory and its content
+        if ($this->getSourceType() == self::SRC_TYPE_LOCAL) {
+            $dirUtil = new ilXapiCmi5ContentUploadImporter($this);
+            $thisDir = implode(DIRECTORY_SEPARATOR, [\ilUtil::getWebspaceDir(), $dirUtil->getWebDataDirRelativeObjectDirectory()]);
+            if (is_dir($thisDir)) {
+                ilUtil::delDir($thisDir);
+            }
+        }
+        // delete meta data
+        // $this->deleteMetaData();//ToDo
+
+        //delete results
+		$query = "DELETE FROM " . self::DB_RESULTS_TABLE_NAME .
+				" WHERE obj_id = " . $ilDB->quote($this->getId(), 'integer') . " ";
+		$ilDB->manipulate($query);
+
+        // TODO check xapidel
+    }
+
+    public function getRegistrations() {
+        global $DIC;
+        $res = $DIC->database()->queryF(
+            "SELECT DISTINCT registration FROM " . self::DB_USERS_TABLE_NAME ." WHERE obj_id = %s",
+            array('text'),
+            array($this->getId())
+        );
+        $ret = [];
+        while ($row = $DIC->database()->fetchAssoc($res)) {
+            $ret[] = $row['registration'];
+        }
+        return $ret;
+    }
+
+    public static function guidv4($data = null) {
+        // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+        $data = $data ?? random_bytes(16);
+        assert(strlen($data) == 16);
+    
+        // Set version to 0100
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        // Set bits 6-7 to 10
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+    
+        // Output the 36 character UUID.
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    public function getCurrentCmixUser()
+    {
+        global $DIC;
+        if (null === $this->currentCmixUser)
+        {
+            $this->currentCmixUser = new ilXapiCmi5User($this->getId(), $DIC->user()->getId(), $this->getPrivacyIdent());
+        }
+        return $this->currentCmixUser;
+    }
+
+    public function getSessionId($cmixUser = null) 
+    {
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        return ilXapiCmi5AuthToken::getCmi5SessionByUsrIdAndObjIdAndRefId($cmixUser->getUsrId(),$this->getId(), $this->getRefId());
+    }
+
+    /**
+     * LMS.LaunchData
+     */
+    public function getLaunchData($cmixUser = null, $lang = 'en')
+    {
+        global $DIC;
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        // ToDo
+        $moveOn = $this->getLMSMoveOn();
+        if (!$moveOn || $moveOn == '')
+        {
+            $moveOn = 'Completed';
+        }
+        $launchMode = $this->getLaunchMode();
+        // only check switch if self::LAUNCH_MODE_NORMAL
+        if ($launchMode == self::LAUNCH_MODE_NORMAL) {
+            if ($cmixUser->getSatisfied() && $this->isSwitchToReviewEnabled()) {
+                $launchMode = self::LAUNCH_MODE_REVIEW;
+            }
+        }
+        $ctxTemplate = [
+            "contextTemplate" => $this->getLaunchedContextTemplate($cmixUser),
+            "launchMode" => ucfirst($launchMode),
+            "launchMethod" => "OwnWindow",
+            "moveOn" => $moveOn
+        ];
+        $lmsLaunchMethod = $this->getLaunchMethod();
+        // Core
+        if ($lmsLaunchMethod === "ownWin") {
+            include_once('./Services/Link/classes/class.ilLink.php');
+            $href = ilLink::_getStaticLink(
+                $this->getRefId(),
+                $this->getType()
+            );
+            $ctxTemplate['returnURL'] = $href;
+        }
+        // if ($lmsLaunchMethod === "ownWin") {
+            // $ctxTemplate['returnURL'] = str_replace("&amp;","&",ILIAS_HTTP_PATH. "/" . $DIC->ctrl()->getLinkTargetByClass([ilObjPluginDispatchGUI::class, ilObjXapiCmi5GUI::class], "viewEmbed"));
+        // }
+        else {
+            $ctxTemplate['returnURL'] = ILIAS_HTTP_PATH."/Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/xapiexit.php?lang={$lang}";
+        }
+        if (!empty($this->getMasteryScore())) {
+            $ctxTemplate['masteryScore'] = $this->getMasteryScore();
+        }
+        if (!empty($this->getLaunchParameters())) {
+            $ctxTemplate['launchParameters'] = $this->getLaunchParameters();
+        }
+        if (!empty($this->getEntitlementKey())) {
+            $ctxTemplate['entitlementKey'] = array("courseStructure" => $this->getEntitlementKey());
+        }
+        return $ctxTemplate;
+    }
+
+    public function getLaunchedContextTemplate($cmixUser = null) 
+    {
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $launchMode = $this->getLaunchMode();
+        // only check switch if self::LAUNCH_MODE_NORMAL
+        if ($launchMode == self::LAUNCH_MODE_NORMAL) {
+            if ($cmixUser->getSatisfied() && $this->isSwitchToReviewEnabled()) {
+                $launchMode = self::LAUNCH_MODE_REVIEW;
+            }
+        }
+        $extensions = $this->getStatementExtensions($cmixUser);
+        $extensions['https://w3id.org/xapi/cmi5/context/extensions/launchmode'] =  $launchMode;
+        if (!empty($this->getLMSMoveOn())) {
+            $extensions['https://w3id.org/xapi/cmi5/context/extensions/moveon'] = $this->getLMSMoveOn();
+        }
+        if (!empty($this->getLaunchParameters())) {
+            $extensions['https://w3id.org/xapi/cmi5/context/extensions/launchparameters'] = $this->getLaunchParameters();
+        }
+        if (!empty($this->getMasteryScore())) {
+            $extensions['https://w3id.org/xapi/cmi5/context/extensions/masteryscore'] = $this->getMasteryScore();
+        }
+        $contextTemplate = array(
+            "contextActivities" => $this->getStatementContextActivities(),
+            "extensions" => $extensions
+        );
+        return $contextTemplate;
+    }
+
+    /**
+     * blueprint statement
+     */
+    public function getStatement(string $verb, $cmixUser = null)
+    {
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $id = self::guidv4();
+        $actor = $this->getStatementActor($cmixUser);
+        $verbUri = ilXapiCmi5VerbList::getInstance()->getVerbUri($verb);
+        $extensions = $this->getStatementExtensions($cmixUser);
+        $registration = $cmixUser->getRegistration();
+        $contextActivities = $this->getStatementContextActivities();
+        $object = $this->getStatementObject();
+        $statement = array (
+            'id' => $id,
+            'actor' => $actor,
+            'verb' => 
+            array (
+                'id' => $verbUri
+            ),
+            'context' => 
+            array (
+                'extensions' => $extensions,
+                'registration' => $registration,
+                'contextActivities' => $contextActivities
+            ),
+            'object' => $object
+        );
+        return $statement;
+    }
+
+    /**
+     * statement actor
+     */
+    public function getStatementActor($cmixUser = null)
+    {
+        global $DIC;
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $name = 'UNDEFINED';
+        $user_id = $cmixUser->getUsrId();
+        if (ilObjUser::_lookupLogin($user_id))
+        {
+            $user = new ilObjUser($user_id); // TODO: Caching Names?  
+            $name = ilXapiCmi5User::getName($this->getPrivacyName(), $user);
+        }
+        else {
+            $this->log()->warning('user already deleted?');
+        }
+        if ($name == '') {
+            $this->log()->warning('no name in cmixuser');
+        }
+        $homePage = ($this->anonymousHomePage == true) ? self::ANONYMOUS_HOMEPAGE : self::iliasUrl();
+        if ($this->getContentType() == self::CONT_TYPE_CMI5)
+        {
+            $actor = [
+                'objectType' => 'Agent',
+                'account' => [
+                    'homePage' => $homePage,
+                    'name' => $cmixUser->getUsrIdent()
+                ]
+            ];
+            if ($name !== '')
+            {
+                $actor['name'] = $name;
+            }
+        }
+        else
+        {
+            $actor = [
+                'objectType' => 'Agent',
+                'mbox' => 'mailto:'.$cmixUser->getUsrIdent()
+            ];
+            if ($name !== '')
+            {
+                $actor['name'] = $name;
+            }
+        }
+        return $actor;     
+    }
+
+    /**
+     * Minimal extensions
+     */
+    public function getStatementExtensions($cmixUser = null)
+    {
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $extensions = array (
+            'https://w3id.org/xapi/cmi5/context/extensions/sessionid' => $this->getSessionId($cmixUser),
+            'https://ilias.de/cmi5/activityid' => $this->getActivityId()
+        );
+        return $extensions;
+    }
+
+    /**
+     * Minimal statementActivities
+     */
+    public function getStatementContextActivities()
+    {
+        $publisherId = $this->getPublisherId();
+        $activityId = $this->getActivityId();
+        if (empty($publisherId)) 
+        {
+            $publisherId = $activityId;
+        }
+        $ctxActivities = array(
+            "grouping" => [
+                [
+                "objectType" => "Activity",
+                "id" => "{$publisherId}",
+                'definition' => 
+                array (
+                    'name' => 
+                    array (
+                        'de-DE' => $this->getTitle(),
+                        'en-US' => $this->getTitle()
+                    ),
+                    'description' => 
+                    array (
+                        'de-DE' => $this->getDescription(),
+                        'en-US' => $this->getDescription()
+                    )
+                )]
+            ],
+            "category" => [
+                [
+                    "id" => "https://w3id.org/xapi/cmi5/context/categories/cmi5",
+                    "objectType" => "Activity"
+                ]
+            ]
+        );
+        return $ctxActivities;
+    }
+
+    public function getStatementObject()
+    {
+        $object = array (
+                'id' => $this->getActivityId(),
+                'definition' => 
+                array (
+                    'name' => 
+                    array (
+                        'de-DE' => $this->getTitle(),
+                        'en-US' => $this->getTitle()
+                    ),
+                    'description' => 
+                    array (
+                        'de-DE' => $this->getDescription(),
+                        'en-US' => $this->getDescription()
+                    )
+                )
+            );
+        return $object;
+    }
+
+    public function getLaunchedStatement($cmixUser = null)
+    {
+        if (null === $cmixUser) {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $launchMode = $this->getLaunchMode();
+        // only check switch if self::LAUNCH_MODE_NORMAL
+        if ($launchMode == self::LAUNCH_MODE_NORMAL) {
+            if ($cmixUser->getSatisfied() && $this->isSwitchToReviewEnabled()) {
+                $launchMode = self::LAUNCH_MODE_REVIEW;
+            }
+        }
+        
+        $statement = $this->getStatement('launched', $cmixUser);
+        $statement['context']['extensions']['https://w3id.org/xapi/cmi5/context/extensions/launchmode'] = $launchMode;
+        if (!empty($this->getLMSMoveOn())) {
+            $statement['context']['extensions']['https://w3id.org/xapi/cmi5/context/extensions/moveon'] = $this->getLMSMoveOn();
+        }
+        if (!empty($this->getLaunchParameters())) {
+            $statement['context']['extensions']['https://w3id.org/xapi/cmi5/context/extensions/launchparameters'] = $this->getLaunchParameters();
+        }
+        if (!empty($this->getMasteryScore())) {
+            $statement['context']['extensions']['https://w3id.org/xapi/cmi5/context/extensions/masteryscore'] = $this->getMasteryScore();
+        }
+        return $statement;
+    }
+
+    public function getAbandonedStatement($sessionId, $duration, $cmixUser = null)
+    {
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $statement = $this->getStatement('abandoned',$cmixUser);
+        // overwrite session with abandoned oldSession
+        $statement['context']['extensions']['https://w3id.org/xapi/cmi5/context/extensions/sessionid'] = $sessionId;
+        $statement['result'] = array(
+            'duration' => $duration
+        );
+        return $statement;
+    }
+
+    public function getSatisfiedStatement($cmixUser = null)
+    {
+        if (null === $cmixUser)
+        {
+            $cmixUser = $this->getCurrentCmixUser();
+        }
+        $statement = $this->getStatement('satisfied', $cmixUser);
+        // add type, see https://aicc.github.io/CMI-5_Spec_Current/samples/scenarios/16-not_applicable-no_launch/#satisfied-statement
+        // see also: https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#verbs_satisfied
+        $type = "https://w3id.org/xapi/cmi5/activitytype/course";
+        $statement['object']['definition']['type'] = $type;
+        $statement['context']['contextActivities']['grouping'][0]['definition']['type'] = $type;
+        return $statement;
+    }
+
+    /**
+     * get latest statement from session
+     */
+    public function getLastStatement($sess)
+    {
+        global $DIC;
+        $lrsType = $this->getLrsType();
+
+        //$this->getLrsEndpoint())) . '/api/' . self::ENDPOINT_AGGREGATE_SUFFIX;
+        $defaultLrs = $lrsType->getLrsEndpointStatementsAggregationLink();
+        //$fallbackLrs = $lrsType->getLrsFallbackEndpoint();
+        $defaultBasicAuth = $lrsType->getBasicAuth();
+        //$fallbackBasicAuth = $lrsType->getFallbackBasicAuth();
+        $defaultHeaders = [
+            'X-Experience-API-Version' => '1.0.3',
+            'Authorization' => $defaultBasicAuth,
+            'Cache-Control' => 'no-cache, no-store, must-revalidate'
+        ];
+        /*
+        $fallbackHeaders = [
+            'X-Experience-API-Version' => '1.0.3',
+            'Authorization' => $fallbackBasicAuth,
+            'Content-Type' => 'application/json;charset=utf-8',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate'
+        ];
+        */
+        $pipeline = json_encode($this->getLastStatementPipline($sess));
+        $defaultLastStatementUrl = $defaultLrs . "?pipeline=" . urlencode($pipeline);
+        $client = new GuzzleHttp\Client();
+        $req_opts = array(
+            GuzzleHttp\RequestOptions::VERIFY => true,
+            GuzzleHttp\RequestOptions::CONNECT_TIMEOUT => 10,
+            GuzzleHttp\RequestOptions::HTTP_ERRORS => false
+        );
+        $defaultLastStatementRequest = new GuzzleHttp\Psr7\Request(
+            'GET',
+            $defaultLastStatementUrl,
+            $defaultHeaders
+        );
+        $promises = array();
+        $promises['defaultLastStatement'] = $client->sendAsync($defaultLastStatementRequest, $req_opts);
+        try
+        {
+            $responses = GuzzleHttp\Promise\settle($promises)->wait();
+            $body = '';
+            ilXapiCmi5AbstractRequest::checkResponse($responses['defaultLastStatement'],$body,[200]);
+            return json_decode($body,JSON_OBJECT_AS_ARRAY);
+        }
+        catch(Exception $e)
+        {
+            $this->log()->error('error:' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function getLastStatementPipline($sess)
+    {
+        global $DIC;
+        $pipeline = array();
+        
+        // filter activityId
+        $match = array();
+        $match['statement.object.objectType'] = 'Activity';
+        $match['statement.actor.objectType'] = 'Agent';
+        
+        $activityId = array();
+
+        if ($this->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5 && !$this->isMixedContentType())
+        {
+            // https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#963-extensions
+            $activityId['statement.context.extensions.https://ilias&46;de/cmi5/activityid'] = $this->getActivityId();
+        }
+        else
+        {
+            $activityQuery = [
+                '$regex' => '^' . preg_quote($this->getActivityId()) . ''
+            ];
+            $activityId['$or'] = [];
+            $activityId['$or'][] = ['statement.object.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+        }
+
+        $sessionId = array();
+        $sessionId['statement.context.extensions.https://w3id&46;org/xapi/cmi5/context/extensions/sessionid'] = $sess;
+        $match['$and'] = array();
+        $match['$and'][] = $activityId;
+        $match['$and'][] = $sessionId;
+        $sort = array('statement.timestamp' => -1);
+        $project = array('statement.timestamp' => 1, 'statement.verb.id' => 1);
+        $pipeline[] = array('$match' => $match);
+        $pipeline[] = array('$sort' => $sort);
+        $pipeline[] = array('$limit' => 1);
+        $pipeline[] = array('$project' => $project);
+
+        return $pipeline;
+    }
+
+    public static function iliasUrl() {
+        $regex = '/^(https?\:\/\/[^\/]+).*/';
+        preg_match($regex, $GLOBALS['DIC']->http()->request()->getUri(), $request_parts);
+        return $request_parts[1];
+    }
+
+    public static function log() {
+        global $log;
+        if (self::PLUGIN) {
+            return $log;
+        }
+        else {
+            return \ilLoggerFactory::getLogger('cmix');
+        }
+    }
+
+
+    /**
+     * @return bool
+     */
+    /*
+    public function isActivationLimited()
+    {
+        return $this->activationLimited;
+    }
+    */
+    /**
+     * @param bool $activationLimited
+     */
+    /*
+    public function setActivationLimited($activationLimited)
+    {
+        $this->activationLimited = $activationLimited;
+    }
+    */
+    /**
+     * @return int
+     */
+    /*
+    public function getActivationStartingTime()
+    {
+        return $this->activationStartingTime;
+    }
+    */
+    /**
+     * @param int $activationStartingTime
+     */
+    /*
+    public function setActivationStartingTime($activationStartingTime)
+    {
+        $this->activationStartingTime = $activationStartingTime;
+    }
+    */
+    /**
+     * @return int
+     */
+    /*
+    public function getActivationEndingTime()
+    {
+        return $this->activationEndingTime;
+    }
+    */
+    /**
+     * @param int $activationEndingTime
+     */
+    /*
+    public function setActivationEndingTime($activationEndingTime)
+    {
+        $this->activationEndingTime = $activationEndingTime;
+    }
+    */
+    /**
+     * @return bool
+     */
+    /*
+    public function getActivationVisibility()
+    {
+        return $this->activationVisibility;
+    }
+    */
+    /**
+     * @param bool $activationVisibility
+     */
+    /*
+    public function setActivationVisibility($activationVisibility)
+    {
+        $this->activationVisibility = $activationVisibility;
+    }
+    */
+
+
+
+    //PluginSpecific START
+    
+ 	/**
+	 * Set meta data as xml structure
+	 *
+	 * @param int availability type
+	 */
+	public function setMetaDataXML($a_xml) {
+		$this->meta_data_xml = $a_xml;
+	}
+
+	/**
+	 * get meta data as xml structure
+	 */
+	public function getMetaDataXML() {
+		return $this->meta_data_xml;
+	}
+
 	/**
 	 * Set vailability type
 	 *
@@ -228,23 +2339,6 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	}
 
 	/**
-	 * Set meta data as xml structure
-	 *
-	 * @param int availability type
-	 */
-	public function setMetaDataXML($a_xml) {
-		$this->meta_data_xml = $a_xml;
-	}
-
-	/**
-	 * get meta data as xml structure
-	 */
-	public function getMetaDataXML() {
-		return $this->meta_data_xml;
-	}
-
-
-	/**
 	 * Get online status
 	 */
 	public function getOnline() {
@@ -260,99 +2354,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 		}
 	}
 
-	public function setLaunchUrl($a_launch_url) {
-		$this->launch_url = $a_launch_url;
-	}
-	
-	public function getLaunchUrl() {
-		return $this->launch_url;
-	}
 
-
-	public function setActivityId($a_activity_id) {
-		$this->activity_id = $a_activity_id;
-	}
-	
-	public function getActivityId() {
-		return $this->activity_id;
-	}
-
-
-	public function setLaunchKey($a_launch_key) {
-		$this->launch_key = $a_launch_key;
-	}
-	
-	public function getLaunchKey() {
-		return $this->launch_key;
-	}
-
-
-	public function setLaunchSecret($a_launch_secret) {
-		$this->launch_secret = $a_launch_secret;
-	}
-	
-	public function getLaunchSecret() {
-		return $this->launch_secret;
-	}
-
-    /**
-     * @return bool
-     */
-    public function isStatementsReportEnabled()
-    {
-        return $this->statementsReportEnabled;
-    }
-    
-    /**
-     * @param bool $statementsReportEnabled
-     */
-    public function setStatementsReportEnabled($statementsReportEnabled)
-    {
-        if ($statementsReportEnabled == null) $statementsReportEnabled = 0;
-        $this->statementsReportEnabled = $statementsReportEnabled;
-    }
-    
-	public function setUseFetch($a_use_fetch) {
-		if ($a_use_fetch == null) $a_use_fetch = 0;
-		$this->use_fetch = $a_use_fetch;
-	}
-
-	public function getUseFetch() {
-		return $this->use_fetch;
-	}
-
-
-	public function setOpenMode($a_open_mode) {
-		if ($a_open_mode == null) $a_open_mode = 0;
-		$this->open_mode = $a_open_mode;
-	}
-
-	public function getOpenMode() {
-		return $this->open_mode;
-	}
-	
-
-	public function setPrivacyIdent($a_option)
-	{
-		if ($a_option != null) $this->privacy_ident = $a_option;
-	}
-	
-	public function getPrivacyIdent()
-	{
-		return $this->privacy_ident;
-	}
-
-
-	public function setPrivacyName($a_option)
-	{
-		if ($a_option != null) $this->privacy_name = $a_option;
-	}
-	
-	public function getPrivacyName()
-	{
-		return $this->privacy_name;
-	}
-	
 	public function getLPUseScore()
 	{
 		if ($this->lp_mode != self::LP_NotApplicable && $this->lp_mode % self::LP_UseScore == 1) {
@@ -360,292 +2362,9 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 		}
 	}
 
-	####
-	#### Statement Reducer Getter & Setter
-	####
-
-	/**
-	 * @return bool
-	 */
-	public function getOnlyMoveon(): bool
-	{
-		return $this->only_moveon;
-	}
-
-	/**
-	 * @param bool $only_moveon
-	 * @return ilObjXapiCmi5
-	 */
-	public function setOnlyMoveon(bool $only_moveon): ilObjXapiCmi5
-	{
-		$this->only_moveon = $only_moveon;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getAchieved(): bool
-	{
-		return $this->achieved;
-	}
-
-	/**
-	 * @param bool $achieved
-	 * @return ilObjXapiCmi5
-	 */
-	public function setAchieved(bool $achieved): ilObjXapiCmi5
-	{
-		$this->achieved = $achieved;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getAnswered(): bool
-	{
-		return $this->answered;
-	}
-
-	/**
-	 * @param bool $answered
-	 * @return ilObjXapiCmi5
-	 */
-	public function setAnswered(bool $answered): ilObjXapiCmi5
-	{
-		$this->answered = $answered;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getCompleted(): bool
-	{
-		return $this->completed;
-	}
-
-	/**
-	 * @param bool $completed
-	 * @return ilObjXapiCmi5
-	 */
-	public function setCompleted(bool $completed): ilObjXapiCmi5
-	{
-		$this->completed = $completed;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getFailed(): bool
-	{
-		return $this->failed;
-	}
-
-	/**
-	 * @param bool $failed
-	 * @return ilObjXapiCmi5
-	 */
-	public function setFailed(bool $failed): ilObjXapiCmi5
-	{
-		$this->failed = $failed;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getInitialized(): bool
-	{
-		return $this->initialized;
-	}
-
-	/**
-	 * @param bool $initialized
-	 * @return ilObjXapiCmi5
-	 */
-	public function setInitialized(bool $initialized): ilObjXapiCmi5
-	{
-		$this->initialized = $initialized;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getPassed(): bool
-	{
-		return $this->passed;
-	}
-
-	/**
-	 * @param bool $passed
-	 * @return ilObjXapiCmi5
-	 */
-	public function setPassed(bool $passed): ilObjXapiCmi5
-	{
-		$this->passed = $passed;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getProgressed(): bool
-	{
-		return $this->progressed;
-	}
-
-	/**
-	 * @param bool $progressed
-	 * @return ilObjXapiCmi5
-	 */
-	public function setProgressed(bool $progressed): ilObjXapiCmi5
-	{
-		$this->progressed = $progressed;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getSatisfied(): bool
-	{
-		return $this->satisfied;
-	}
-
-	/**
-	 * @param bool $satisfied
-	 * @return ilObjXapiCmi5
-	 */
-	public function setSatisfied(bool $satisfied): ilObjXapiCmi5
-	{
-		$this->satisfied = $satisfied;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getTerminated(): bool
-	{
-		return $this->terminated;
-	}
-
-	/**
-	 * @param bool $terminated
-	 * @return ilObjXapiCmi5
-	 */
-	public function setTerminated(bool $terminated): ilObjXapiCmi5
-	{
-		$this->terminated = $terminated;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getHideData(): bool
-	{
-		return $this->hide_data;
-	}
-
-	/**
-	 * @param bool $hide_data
-	 * @return ilObjXapiCmi5
-	 */
-	public function setHideData(bool $hide_data): ilObjXapiCmi5
-	{
-		$this->hide_data = $hide_data;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getTimestamp(): bool
-	{
-		return $this->timestamp;
-	}
-
-	/**
-	 * @param bool $timestamp
-	 * @return ilObjXapiCmi5
-	 */
-	public function setTimestamp(bool $timestamp): ilObjXapiCmi5
-	{
-		$this->timestamp = $timestamp;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getDuration(): bool
-	{
-		return $this->duration;
-	}
-
-	/**
-	 * @param bool $duration
-	 * @return ilObjXapiCmi5
-	 */
-	public function setDuration(bool $duration): ilObjXapiCmi5
-	{
-		$this->duration = $duration;
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function getNoSubstatements(): bool
-	{
-		return $this->no_substatements;
-	}
-
-	/**
-	 * @param bool $no_substatements
-	 * @return ilObjXapiCmi5
-	 */
-	public function setNoSubstatements(bool $no_substatements): ilObjXapiCmi5
-	{
-		$this->no_substatements = $no_substatements;
-		return $this;
-	}
-
-
-
-	/**
-	 * create an access token
-	 * 
-	 * @param $a_field
-	 * @return unknown_type
-	 */
-	// private function fillToken($a_field) {
-	public function fillToken() {
-		$seconds = $this->getTimeToDelete();
-		$result = $this->selectCurrentTimestamp();
-		$time = new ilDateTime($result['CURRENT_TIMESTAMP'], IL_CAL_DATETIME);
-
-		$timestamp = $time->get(IL_CAL_UNIX);
-		$new_timestamp = $timestamp + $seconds;
-
-		$value = $this->createToken($timestamp);
-
-		$time_to_db = new ilDateTime($new_timestamp, IL_CAL_UNIX);
-
-		//Insert new token in DB
-		$this->insertToken($value, $time_to_db->get(IL_CAL_DATETIME));
-
-		//delete old tokens
-		$this->deleteToken($timestamp);
-
-		return $value;
-	}
-
+                                          
+                                             
+                                                 
 
 	/**
 	 * get info about the context in which the link is used
@@ -658,6 +2377,8 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	 */
 	public function getContext($a_valid_types = array('crs', 'grp', 'cat', 'root')) {
 		global $tree;
+                                    
+                                    
 
 		if (!isset($this->context)) {
 
@@ -688,267 +2409,15 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	}
 
 
-	/**
-	 * Update function
-	 *
-	 * @access public
-	 */
-	public function doUpdate() {
-		global $ilDB;
-		$ilDB->replace('xxcf_data_settings',
-			array( 'obj_id' => array('integer', $this->getId())),
-			array(
-				'type_id' => array('integer', $this->getTypeId()),
-				'instructions' => array('text', $this->getInstructions()),
-				'availability_type' => array('integer', $this->getAvailabilityType()),
-				'meta_data_xml' => array('text', $this->getMetaDataXML()),
-				'lp_mode' => array('integer', $this->getLPMode()),
-				'lp_threshold' => array('float', $this->getLPThreshold()),
-				'launch_key' => array('text', $this->getLaunchKey()),
-				'launch_secret' => array('text', $this->getLaunchSecret()),
-				'launch_url' => array('text', $this->getLaunchUrl()),
-				'activity_id' => array('text', $this->getActivityId()),
-				'open_mode' => array('integer', $this->getOpenMode()),
-				//'width' => array('integer', $this->getWidth()),
-				'width' => array('integer', 950),
-				'height' => array('integer', 650),
-				'show_statements' => array('integer', (int) $this->isStatementsReportEnabled()),
-				'privacy_comment' => array('text', null),
-				'version' => array('integer', 1),
-				'use_fetch' => array('integer', $this->getUseFetch()),
-				'privacy_ident' => array('integer', $this->getPrivacyIdent()),
-				'privacy_name' => array('integer', (int)$this->getPrivacyName()),
-				'only_moveon' => array('integer', (int)$this->getOnlyMoveon()),
-				'achieved' => array('integer', (int)$this->getAchieved()),
-				'answered' => array('integer', (int)$this->getAnswered()),
-				'completed' => array('integer', (int)$this->getCompleted()),
-				'failed' => array('integer', (int)$this->getFailed()),
-				'initialized' => array('integer', (int)$this->getInitialized()),
-				'passed' => array('integer', (int)$this->getPassed()),
-				'progressed' => array('integer', (int)$this->getProgressed()),
-				'satisfied' => array('integer', (int)$this->getSatisfied()),
-				'c_terminated' => array('integer', (int)$this->getTerminated()),
-				'hide_data' => array('integer', (int)$this->getHideData()),
-				'c_timestamp' => array('integer', (int)$this->getTimestamp()),
-				'duration' => array('integer', (int)$this->getDuration()),
-				'no_substatements' => array('integer', (int)$this->getNoSubstatements())
 
-			)
-		);
-		return true;
-	}
-
-	public function insertToken($a_token, $a_time) {
-		global $ilDB, $ilUser;
-		$ilDB->insert('xxcf_data_token', array(
-			'token' => array('text', $a_token),
-			'time' => array('timestamp', $a_time),
-			'obj_id' => array('integer', $this->getId()),
-			'usr_id' => array('integer', $ilUser->getId())
-			)
-		);
-		return true;
-	}
-	
-	public function getToken() {
-		global $ilDB, $ilUser;
-		$token = '';
-		$obj_id=$this->_lookupObjectId($_GET['ref_id']);
-		$query = "SELECT token FROM xxcf_data_token WHERE obj_id=" . $ilDB->quote($obj_id, 'integer') 
-			. " AND usr_id=" . $ilDB->quote($ilUser->getId(), 'integer');
-			//.time
-		$result = $ilDB->query($query);
-		$row = $ilDB->fetchObject($result);
-		if ($row) {
-			$token = $row->token;
-		}
-		return $token;
-	}
-
-
-	public function deleteToken($times) {
-		global $ilDB;
-
-		$value = date('Y-m-d H:i:s', $times);
-		$query = "DELETE FROM xxcf_data_token WHERE time < " . $ilDB->quote($value, 'timestamp');
-		$ilDB->manipulate($query);
-		return true;
-	}
-
-
-	/**
-	 * Delete
-	 *
-	 * @access public
-	 */
-	public function doDelete() {
-		global $ilDB;
-		
-		$query = "DELETE FROM xxcf_data_settings " .
-				"WHERE obj_id = " . $ilDB->quote($this->getId(), 'integer') . " ";
-		$ilDB->manipulate($query);
-
-		$query = "DELETE FROM xxcf_results " .
-				"WHERE obj_id = " . $ilDB->quote($this->getId(), 'integer') . " ";
-		$ilDB->manipulate($query);
-
-		$query = "DELETE FROM xxcf_user_mapping " .
-				"WHERE obj_id = " . $ilDB->quote($this->getId(), 'integer') . " ";
-		$ilDB->manipulate($query);
-		return true;
-	}
-	
-	/**
-	 * read settings
-	 *
-	 * @access public
-	 */
-	public function doRead() {
-		global $ilDB;
-		
-		$query = 'SELECT * FROM xxcf_data_settings WHERE obj_id = '
-				. $ilDB->quote($this->getId(), 'integer');
-
-		$res = $ilDB->query($query);
-		$row = $ilDB->fetchObject($res);
-		
-		if ($row) {
-			$this->setTypeId($row->type_id);
-			$this->setInstructions($row->instructions);
-			$this->setAvailabilityType($row->availability_type);
-			$this->setMetaDataXML($row->meta_data_xml);
-			$this->setLaunchUrl($row->launch_url);
-			$this->setActivityId($row->activity_id);
-			$this->setStatementsReportEnabled($row->show_statements);
-			$this->setUseFetch($row->use_fetch);
-			$this->setOpenMode($row->open_mode);
-			$this->setPrivacyIdent($row->privacy_ident);
-			$this->setPrivacyName($row->privacy_name);
-			$this->setLPMode($row->lp_mode);
-			$this->setLPThreshold($row->lp_threshold);
-			$this->setOnlyMoveon((bool)$row->only_moveon);
-			$this->setAchieved((bool)$row->achieved);
-			$this->setAnswered((bool)$row->answered);
-			$this->setCompleted((bool)$row->completed);
-			$this->setFailed((bool)$row->failed);
-			$this->setInitialized((bool)$row->initialized);
-			$this->setPassed((bool)$row->passed);
-			$this->setProgressed((bool)$row->progressed);
-			$this->setSatisfied((bool)$row->satisfied);
-			$this->setTerminated((bool)$row->c_terminated);
-			$this->setHideData((bool)$row->hide_data);
-			$this->setTimestamp((bool)$row->c_timestamp);
-			$this->setDuration((bool)$row->duration);
-			$this->setNoSubstatements((bool)$row->no_substatements);
-			// $this->user_object_uid = $this->readUserObjectUniqueId();
-		}
-	}
-
-	/**
-	 * Do Cloning
-	 */
-	function doCloneObject($new_obj, $a_target_id, $a_copy_id = null) { //TODO
-		global $ilDB;
-		
-		$ilDB->insert('xxcf_data_settings', array(
-			'obj_id' => array('integer', $new_obj->getId()),
-			'type_id' => array('integer', $this->getTypeId()),
-			'instructions' => array('text', $this->getInstructions()),
-			'availability_type' => array('integer', $this->getAvailabilityType()),
-			// 'meta_data_xml' => array('text', $this->getMetaDataXML()),
-			'launch_url' => array('text', $this->getLaunchUrl()),
-			'activity_id' => array('text', $this->getActivityId()),
-			'show_statements' => array('integer', (int) $this->isStatementsReportEnabled()),
-			'use_fetch' => array('integer', $this->getUseFetch()),
-			'open_mode' => array('integer', $this->getOpenMode()),
-			'privacy_ident' => array('integer', $this->getPrivacyIdent()),
-			'privacy_name' => array('integer', $this->getPrivacyName()),
-			'lp_mode' => array('integer', $this->getLPMode()),
-			'lp_threshold' => array('float', $this->getLPThreshold()),
-			'only_moveon' => array('integer', (int)$this->getOnlyMoveon()),
-			'achieved' => array('integer', (int)$this->getAchieved()),
-			'answered' => array('integer', (int)$this->getAnswered()),
-			'completed' => array('integer', (int)$this->getCompleted()),
-			'failed' => array('integer', (int)$this->getFailed()),
-			'initialized' => array('integer', (int)$this->getInitialized()),
-			'passed' => array('integer', (int)$this->getPassed()),
-			'progressed' => array('integer', (int)$this->getProgressed()),
-			'satisfied' => array('integer', (int)$this->getSatisfied()),
-			'c_terminated' => array('integer', (int)$this->getTerminated()),
-			'hide_data' => array('integer', (int)$this->getHideData()),
-			'c_timestamp' => array('integer', (int)$this->getTimestamp()),
-			'duration' => array('integer', (int)$this->getDuration()),
-			'no_substatements' => array('integer', (int)$this->getNoSubstatements())
-		 ));
-	}
-
-	function createToken($time) {
-		$pre_token = rand(-100000, 100000);
-		$token = $pre_token . $time;
-		$token = md5($token);
-		return $token;
-	}
-
-	function selectCurrentTimestamp() {
-		global $ilDB;
-		$query = "SELECT CURRENT_TIMESTAMP";
-		$result = $ilDB->query($query);
-		$row = $ilDB->fetchAssoc($result);
-		return $row;
-	}
-
-
-	function checkToken() {
-		global $ilDB;
-
-		$token = $_GET['token'];
-		$query = "SELECT token FROM xxcf_data_token WHERE token = " . $ilDB->quote($token, 'text');
-		$result = $ilDB->query($query);
-		$row = $ilDB->fetchAssoc($result);
-
-		if ($row) {
-			return "1";
-		} else {
-			return "0";
-		}
-	}
-
-
-	function getTimeToDelete() {
-		global $ilDB;
-		$query = "SELECT time_to_delete FROM xxcf_data_types WHERE type_id = " . $ilDB->quote($this->getTypeId(), 'integer');
-		$result = $ilDB->query($query);
-		$row = $ilDB->fetchAssoc($result);
-		return $row['time_to_delete'];
-	}
-
-
-	/**
-	 * get the learning progress mode
-	 */
-	public function getLPMode() {
-		return $this->lp_mode;
-	}
-
+#
+# LEARNING PGROGRESS
+#
 	/**
 	 * set the learning progress mode
 	 */
 	public function setLPMode($a_mode) {
 		$this->lp_mode = $a_mode;
-	}
-
-	/**
-	 * get the learning progress mode
-	 */
-	public function getLPThreshold() {
-		return $this->lp_threshold;
-	}
-
-	/**
-	 * set the learning progress mode
-	 */
-	public function setLPThreshold($a_threshold) {
-		$this->lp_threshold = $a_threshold;
 	}
 
 
@@ -1023,15 +2492,19 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 		}
 	}
 
+#
+# PROXY
+#
+
     public static function handleLPStatusFromProxy($client, $token, $status, $score) {
 		$LP_status = 1;
 		$LP_score = 0;
 		if ($score != "NOT_SET") $LP_score = $score;
 		global $ilDB;
 
-		$query = "SELECT xxcf_data_token.usr_id, xxcf_data_token.obj_id, xxcf_data_token.time, xxcf_data_settings.lp_mode"
-				." FROM xxcf_data_token, xxcf_data_settings WHERE token = " . $ilDB->quote($token, 'text')
-				." AND xxcf_data_settings.obj_id = xxcf_data_token.obj_id";
+		$query = "SELECT xxcf_token.usr_id, xxcf_token.obj_id, xxcf_token.valid_until, xxcf_settings.lp_mode"
+				." FROM xxcf_token, xxcf_settings WHERE token = " . $ilDB->quote($token, 'text')
+				." AND xxcf_settings.obj_id = xxcf_token.obj_id";
 		$result = $ilDB->query($query);
 		$row = $ilDB->fetchAssoc($result);
 		$usr_id = $row['usr_id'];
@@ -1051,111 +2524,9 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 			require_once './Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5LPStatus.php';
 			// $this->plugin->includeClass('class.ilXapiCmi5LPStatus.php');
 			\ilXapiCmi5LPStatus::trackResult($usr_id, $obj_id, $LP_status, $LP_score);
-			
+
+            \ilXapiCmi5LPStatus::trackAccess($usr_id, $obj_id, 0); //ref_id not known here
 		}
     }
 
-    
-    /******* TESTING *******/
-    
-    // public static function handleLPStatusFromProxy($client, $token, $status, $score) {
-		// // trackResult
-        // self::_log("handleLPStatusFromProxy: ". $client . ":" . $token . ":" . $status . ":" . $score);
-    // }
-    
-    public static function getLrsTypeByToken($a_token) {
-		global $ilDB;
-		$query = "SELECT type_id FROM xxcf_data_settings, xxcf_data_token WHERE xxcf_data_settings.obj_id = xxcf_data_token.obj_id AND xxcf_data_token.token = " . $ilDB->quote($a_token, 'text');
-		$res = $ilDB->query($query);
-		$type_id = null;
-		$lrs = null;
-		while ($row = $ilDB->fetchObject($res)) 
-		{
-			$type_id = $row->type_id;
-		}
-		if ($type_id) {
-			$lrs = new ilXapiCmi5Type($type_id);
-		}
-		return $lrs;
-	}
-    
-    private static function _log($txt) {
-        file_put_contents("xapilog.txt",$txt."\n",FILE_APPEND);
-	}
-
-	##########################################################################################################
-	#### UUID depends on ilObjXapiCmi5 at first time of showing content of the object by the user.
-	#### Onetime Db-insertion, no update, delete or clone ops required.
-	##########################################################################################################
-
-	/**
-	 * @param int $length
-	 * @return string
-	 */
-	// public function generateUserObjectUniqueId( $length = 32 )
-	// {
-		// if( (bool)strlen($this->user_object_uid) ) {
-			// return $this->user_object_uid;
-		// }
-
-		// $getId = function( $length ) {
-			// $multiplier = floor($length/8) * 2;
-			// $uid = str_shuffle(str_repeat(uniqid(), $multiplier));
-
-			// try {
-				// $ident = bin2hex(random_bytes($length));
-			// } catch (Exception $e) {
-				// $ident = $uid;
-			// }
-
-			// $start = rand(0, strlen($ident) - $length - 1);
-			// return substr($ident, $start, $length);
-		// };
-
-		// $id = $getId($length);
-
-		// $exists = $this->userObjectUniqueIdExists($id);
-
-		// while( $exists ) {
-			// $id = $getId($length);
-			// $exists = $this->userObjectUniqueIdExists($id);
-		// }
-
-		// return $id;
-
-	// }
-
-	// private function readUserObjectUniqueId()
-	// {
-		// global $DIC; /** @var Container */
-
-		// $query = "SELECT uuid FROM xxcf_usrobjuuid_map".
-				// " WHERE usr_id = " . $DIC->user()->getId() .
-				// " AND obj_id = " . $DIC->database()->quote($this->getId(), 'integer');
-		// $result = $DIC->database()->query($query);
-		// return is_array($row = $DIC->database()->fetchAssoc($result)) ? $row['uuid'] : '';
-	// }
-
-	// private function userObjectUniqueIdExists($id)
-	// {
-		// global $DIC; /** @var Container */
-
-		// $query = "SELECT uuid FROM xxcf_usrobjuuid_map WHERE uuid = " . $DIC->database()->quote($id, 'text');
-		// $result = $DIC->database()->query($query);
-		// return (bool)$num = $DIC->database()->numRows($result);
-	// }
-
-	// private function insertUserObjectUniqueId($ident)
-	// {
-		// global $DIC; /** @var Container */
-
-		// return (bool)$DIC->database()->insert('xxcf_usrobjuuid_map', [
-			// 'usr_id'	=> ['integer', $DIC->user()->getId()],
-			// 'obj_id'	=> ['integer', $this->getId()],
-			// 'uuid'	=> ['text', $ident]
-		// ]);
-	// }
-
 }
-
-?>

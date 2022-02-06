@@ -34,11 +34,11 @@ class ilXapiCmi5Plugin extends ilRepositoryObjectPlugin
 	protected function uninstallCustom()
 	{
 		global $ilDB;
-		$ilDB->dropTable('xxcf_data_types');
-		$ilDB->dropTable('xxcf_data_settings');
+		$ilDB->dropTable('xxcf_lrs_types');
+		$ilDB->dropTable('xxcf_settings');
 		$ilDB->dropTable('xxcf_results');
 		$ilDB->dropTable('xxcf_user_mapping');
-        $ilDB->dropTable('xxcf_data_token');
+        $ilDB->dropTable('xxcf_token');
         if( $ilDB->tableExists('xxcf_users') ) {
             $ilDB->dropTable('xxcf_users');
         }
@@ -120,7 +120,7 @@ class ilXapiCmi5Plugin extends ilRepositoryObjectPlugin
 	*/
 	static function _deleteWebspaceDir($a_level = "plugin", $a_id = 0)
 	{
-		return ilUtil::delDir(self::_getWebspaceDir($a_level, $a_id));
+		ilUtil::delDir(self::_getWebspaceDir($a_level, $a_id));
 	}
     
     /**

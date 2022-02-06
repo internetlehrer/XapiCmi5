@@ -19,6 +19,120 @@ class ilObjXapiCmi5Access extends ilObjectPluginAccess
 	
 	private static $settings_cache = array();
 
+    /**
+     * @var ilObjXapiCmi5
+     */
+    protected $object;
+    
+    /**
+     * ilXapiCmi5Access constructor.
+     * @param ilObjXapiCmi5 $object
+     */
+    public function __construct(ilObjXapiCmi5 $object = null)
+    {
+        $this->object = $object;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasLearningProgressAccess()
+    {
+        return ilLearningProgressAccess::checkAccess($this->object->getRefId());
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasWriteAccess()
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        return (bool) $DIC->access()->checkAccess(
+            'write',
+            '',
+            $this->object->getRefId(),
+            $this->object->getType(),
+            $this->object->getId()
+        );
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasEditPermissionsAccess()
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $editPermsAccess = $DIC->access()->checkAccess(
+            'edit_permission',
+            '',
+            $this->object->getRefId(),
+            $this->object->getType(),
+            $this->object->getId()
+        );
+        
+        if ($editPermsAccess) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasOutcomesAccess()
+    {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        
+        $outcomesAccess = $DIC->access()->checkAccess(
+            'read_outcomes',
+            '',
+            $this->object->getRefId(),
+            $this->object->getType(),
+            $this->object->getId()
+        );
+        
+        if ($outcomesAccess) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * @return bool
+     */
+    public function hasStatementsAccess()
+    {
+        if ($this->object->isStatementsReportEnabled()) {
+            return true;
+        }
+        
+        return $this->hasOutcomesAccess();
+    }
+    
+    /**
+     * @return bool
+     */
+    public function hasHighscoreAccess()
+    {
+        if ($this->object->getHighscoreEnabled()) {
+            return true;
+        }
+        
+        return $this->hasOutcomesAccess();
+    }
+    
+    /**
+     * @param ilObjXapiCmi5 $object
+     * @return ilObjXapiCmi5Access
+     */
+    public static function getInstance(ilObjXapiCmi5 $object)
+    {
+        return new self($object);
+    }
+
 	/**
 	* checks wether a user may invoke a command or not
 	* (this method is called by ilAccessHandler::checkAccess)
@@ -101,8 +215,8 @@ class ilObjXapiCmi5Access extends ilObjectPluginAccess
 	       	global $ilDB;
 	       	
 	       	// include only the colums neccessary for object listings
-	        $query = 'SELECT type_id, availability_type '
-	        		. ' FROM xxcf_data_settings '
+	        $query = 'SELECT lrs_type_id, availability_type '
+	        		. ' FROM xxcf_settings '
 	        		. ' WHERE obj_id = ' . $ilDB->quote($a_obj_id, 'integer');
 	        		
 	        $result = $ilDB->query($query);
@@ -115,30 +229,33 @@ class ilObjXapiCmi5Access extends ilObjectPluginAccess
 		
 		return self::$settings_cache[$a_obj_id];
     }
-    
-    public static function hasOutcomesAccess($object) {
-        global $DIC; /* @var \ILIAS\DI\Container $DIC */
-        $outcomesAccess = $DIC->access()->checkAccess(
-            'read_outcomes',
-            '',
-            $object->getRefId(),
-            $object->getType(),
-            $object->getId()
-        );
-        if ($outcomesAccess) {
-            return true;
-        }
-        return false;
-    }
 
+    // needs to be static?
+    /*
     public static function hasDeleteXapiDataAccess($object) {
-        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        global $DIC;
         $deleteAccess = $DIC->access()->checkAccess(
             'delete_xapi_data',
             '',
             $object->getRefId(),
             $object->getType(),
             $object->getId()
+        );
+        if ($deleteAccess) {
+            return true;
+        }
+        return false;
+    }
+    */
+
+    public function hasDeleteXapiDataAccess() {
+        global $DIC; /* @var \ILIAS\DI\Container $DIC */
+        $deleteAccess = $DIC->access()->checkAccess(
+            'delete_xapi_data',
+            '',
+            $this->object->getRefId(),
+            $this->object->getType(),
+            $this->object->getId()
         );
         if ($deleteAccess) {
             return true;

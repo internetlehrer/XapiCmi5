@@ -14,7 +14,7 @@ include_once("./Services/Component/classes/class.ilPluginConfigGUI.php");
  */ 
 class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 {
-	/** @var ilXapiCmi5Type $type */
+	/** @var ilXapiCmi5LrsType $type */
 	private $type;
 
 	/** @var ilPropertyFormGUI $form */
@@ -27,7 +27,7 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 	{
 		global $tree, $rbacsystem, $ilErr, $lng, $ilCtrl, $tpl;
 		
-		$this->plugin_object->includeClass('class.ilXapiCmi5Type.php');
+		$this->plugin_object->includeClass('class.ilXapiCmi5LrsType.php');
 		$this->plugin_object->includeClass('class.ilObjXapiCmi5.php');
 		
 		// control flow
@@ -38,8 +38,8 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		   	case 'submitSettings':
 			case 'deleteType':
 			case 'deleteTypeConfirmed':
-				$this->type = new ilXapiCmi5Type($_GET['type_id']);
-				$tpl->setDescription($this->type->getName());
+				$this->type = new ilXapiCmi5LrsType($_GET['type_id']);
+				$tpl->setDescription($this->type->getTitle());
 				
 				$ilCtrl->saveParameter($this, 'type_id');
 				$this->initTabs('edit_type');
@@ -122,8 +122,8 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 	{
 		global $tpl;
 
-		require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5TypesTableGUI.php');
-		$table_gui = new ilXapiCmi5TypesTableGUI($this, 'listTypes');
+		require_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/class.ilXapiCmi5LrsTypesTableGUI.php');
+		$table_gui = new ilXapiCmi5LrsTypesTableGUI($this, 'listTypes');
 		$table_gui->init($this);
 		$tpl->setContent($table_gui->getHTML());
 	}
@@ -134,7 +134,7 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 	function createType()
 	{
 		global $tpl;
-		$this->type = new ilXapiCmi5Type();
+		$this->type = new ilXapiCmi5LrsType();
 		$this->initTypeForm(true);
 		$tpl->setContent($this->form->getHTML());
 	}
@@ -157,13 +157,6 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$form->setFormAction($ilCtrl->getFormAction($this));
 		$form->setTitle($this->plugin_object->txt('lrs_type'));
 
-		$item = new ilTextInputGUI($this->plugin_object->txt('conf_type_name'), 'type_name');
-		$item->setValue($this->type->getName());
-		$item->setInfo($this->plugin_object->txt('info_type_name'));
-		$item->setRequired(true);
-		$item->setMaxLength(32);
-		$form->addItem($item);
-
 		$item = new ilTextInputGUI($this->plugin_object->txt('conf_title'), 'title');
 		$item->setValue($this->type->getTitle());
 		$item->setInfo($this->plugin_object->txt('info_title'));
@@ -179,30 +172,15 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$item = new ilSelectInputGUI($this->plugin_object->txt('conf_availability'), 'availability');
 		$item->setOptions (
 				array(
-					ilXapiCmi5Type::AVAILABILITY_CREATE => $this->plugin_object->txt('conf_availability_' . ilXapiCmi5Type::AVAILABILITY_CREATE),
-					ilXapiCmi5Type::AVAILABILITY_EXISTING => $this->plugin_object->txt('conf_availability_' . ilXapiCmi5Type::AVAILABILITY_EXISTING),
-					ilXapiCmi5Type::AVAILABILITY_NONE => $this->plugin_object->txt('conf_availability_' . ilXapiCmi5Type::AVAILABILITY_NONE)
+					ilXapiCmi5LrsType::AVAILABILITY_CREATE => $this->plugin_object->txt('conf_availability_' . ilXapiCmi5LrsType::AVAILABILITY_CREATE),
+					ilXapiCmi5LrsType::AVAILABILITY_EXISTING => $this->plugin_object->txt('conf_availability_' . ilXapiCmi5LrsType::AVAILABILITY_EXISTING),
+					ilXapiCmi5LrsType::AVAILABILITY_NONE => $this->plugin_object->txt('conf_availability_' . ilXapiCmi5LrsType::AVAILABILITY_NONE)
 				)
 		);
 		$item->setValue($this->type->getAvailability());
 		$item->setInfo($this->plugin_object->txt('info_availability'));
 		$item->setRequired(true);
 		$form->addItem($item);
-
-		/*
-		$item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_log_level'), 'log_level');
-		$op = new ilRadioOption($this->plugin_object->txt('conf_log_level_0'), 0);
-		// $op -> setInfo($this->plugin_object->txt('conf_log_level_0'));
-		$item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_log_level_1'), 1);
-		$item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_log_level_2'), 2);
-		$item->addOption($op);
-		$item->setValue($this->type->getLogLevel());
-		$item->setInfo($this->plugin_object->txt('info_log_level'));
-		$item->setRequired(false);
-		$form->addItem($item);
-		*/
 
 		$item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_lrs_type_id'), 'lrs_type_id');
 		$op = new ilRadioOption($this->plugin_object->txt('conf_lrs_type_id_0'), 0);
@@ -220,21 +198,21 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		// Endpoint 1
 
 		$item = new ilTextInputGUI($this->plugin_object->txt('conf_lrs_endpoint_1'), 'lrs_endpoint_1');
-		$item->setValue($this->type->getLrsEndpoint1());
+		$item->setValue($this->type->getLrsEndpoint());
 		$item->setInfo($this->plugin_object->txt('info_lrs_endpoint'));
 		$item->setRequired(true);
 		$item->setMaxLength(255);
 		$form->addItem($item);
 
 		$item = new ilTextInputGUI($this->plugin_object->txt('conf_lrs_key_1'), 'lrs_key_1');
-		$item->setValue($this->type->getLrsKey1());
+		$item->setValue($this->type->getLrsKey());
 		$item->setInfo($this->plugin_object->txt('info_lrs_key'));
 		$item->setRequired(true);
 		$item->setMaxLength(128);
 		$form->addItem($item);
 
 		$item = new ilTextInputGUI($this->plugin_object->txt('conf_lrs_secret_1'), 'lrs_secret_1');
-		$item->setValue($this->type->getLrsSecret1());
+		$item->setValue($this->type->getLrsSecret());
 		$item->setInfo($this->plugin_object->txt('info_lrs_secret'));
 		$item->setRequired(true);
 		$item->setMaxLength(128);
@@ -284,39 +262,65 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
         $form->addItem($sectionHeader);
 	
 		$item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_privacy_ident'), 'privacy_ident');
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_ident_0'), 0);
-		$item->addOption($op);
-		// $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_ident_1'), 1);
-		// $item->addOption($op);
-		// $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_ident_2'), 2);
-		// $item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_ident_3'), 3);
-		$item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_ident_4'), 4);
-		$item->addOption($op);
-		$item->setInfo($this->plugin_object->txt('info_privacy_ident'));
-		$item->setValue($this->type->getPrivacyIdent());
-		$item->setRequired(false);
-		$form->addItem($item);
+        $op = new ilRadioOption(
+            $this->plugin_object->txt('conf_privacy_ident_il_uuid_user_id'),
+            ilXapiCmi5LrsType::PRIVACY_IDENT_IL_UUID_USER_ID
+        );
+        $op->setInfo($this->plugin_object->txt('conf_privacy_ident_il_uuid_user_id_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption(
+            $this->plugin_object->txt('conf_privacy_ident_il_uuid_login'),
+            ilXapiCmi5LrsType::PRIVACY_IDENT_IL_UUID_LOGIN
+        );
+        $op->setInfo($this->plugin_object->txt('conf_privacy_ident_il_uuid_login_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption(
+            $this->plugin_object->txt('conf_privacy_ident_il_uuid_ext_account'),
+            ilXapiCmi5LrsType::PRIVACY_IDENT_IL_UUID_EXT_ACCOUNT
+        );
+        $op->setInfo($this->plugin_object->txt('conf_privacy_ident_il_uuid_ext_account_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption(
+            $this->plugin_object->txt('conf_privacy_ident_il_uuid_random'),
+            ilXapiCmi5LrsType::PRIVACY_IDENT_IL_UUID_RANDOM
+        );
+        $op->setInfo($this->plugin_object->txt('conf_privacy_ident_il_uuid_random_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption(
+            $this->plugin_object->txt('conf_privacy_ident_real_email'),
+            ilXapiCmi5LrsType::PRIVACY_IDENT_REAL_EMAIL
+        );
+        $op->setInfo($this->plugin_object->txt('conf_privacy_ident_real_email_info'));
+        $item->addOption($op);
+        $item->setValue($this->type->getPrivacyIdent());
+        $item->setInfo(
+            $this->plugin_object->txt('conf_privacy_ident_info') . ' ' . ilXapiCmi5User::getIliasUuid()
+        );
+        $item->setRequired(false);
+        $form->addItem($item);
 
 
 		$item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_privacy_name'), 'privacy_name');
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_0'), 0);
-		$item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_1'), 1);
-		$item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_2'), 2);
-		$item->addOption($op);
-		$op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_3'), 3);
-		$item->addOption($op);
+        $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_none'), ilXapiCmi5LrsType::PRIVACY_NAME_NONE);
+        $op->setInfo($this->plugin_object->txt('conf_privacy_name_none_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_firstname'), ilXapiCmi5LrsType::PRIVACY_NAME_FIRSTNAME);
+        $op->setInfo($this->plugin_object->txt('conf_privacy_name_firstname_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_lastname'), ilXapiCmi5LrsType::PRIVACY_NAME_LASTNAME);
+        $op->setInfo($this->plugin_object->txt('conf_privacy_name_lastname_info'));
+        $item->addOption($op);
+        $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_name_fullname'), ilXapiCmi5LrsType::PRIVACY_NAME_FULLNAME);
+        $op->setInfo($this->plugin_object->txt('conf_privacy_name_fullname_info'));
+        $item->addOption($op);
 		$item->setValue($this->type->getPrivacyName());
-		$item->setInfo($this->plugin_object->txt('info_privacy_name'));
+		$item->setInfo($this->plugin_object->txt('conf_privacy_name_info'));
 		$item->setRequired(false);
 		$form->addItem($item);
 
-		$sectionHeader = new ilFormSectionHeaderGUI();
-        $sectionHeader->setTitle($this->plugin_object->txt('title_data_reduction'));
-        $form->addItem($sectionHeader);
+		// $sectionHeader = new ilFormSectionHeaderGUI();
+        // $sectionHeader->setTitle($this->plugin_object->txt('title_data_reduction'));
+        // $form->addItem($sectionHeader);
 	
 
         $item = new ilCheckboxInputGUI($this->plugin_object->txt('only_moveon_label'), 'only_moveon');
@@ -435,7 +439,7 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 	 */
 	private function submitNewType()
 	{
-		$this->type = new ilXapiCmi5Type();
+		$this->type = new ilXapiCmi5LrsType();
 		$this->saveSettings(true);
 	}
 	/**
@@ -460,15 +464,14 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		} 
 		else
 		{
-			$this->type->setName($this->form->getInput("type_name"));
 			$this->type->setTitle($this->form->getInput("title"));
 			$this->type->setDescription($this->form->getInput("description"));
 			$this->type->setAvailability($this->form->getInput("availability"));
 			//$this->type->setLogLevel($this->form->getInput("log_level"));
 			$this->type->setLrsTypeId($this->form->getInput("lrs_type_id"));
-			$this->type->setLrsEndpoint1($this->form->getInput("lrs_endpoint_1"));
-			$this->type->setLrsKey1($this->form->getInput("lrs_key_1"));
-			$this->type->setLrsSecret1($this->form->getInput("lrs_secret_1"));
+			$this->type->setLrsEndpoint($this->form->getInput("lrs_endpoint_1"));
+			$this->type->setLrsKey($this->form->getInput("lrs_key_1"));
+			$this->type->setLrsSecret($this->form->getInput("lrs_secret_1"));
 			$this->type->setLrsEndpoint2($this->form->getInput("lrs_endpoint_2"));
 			$this->type->setLrsKey2($this->form->getInput("lrs_key_2"));
 			$this->type->setLrsSecret2($this->form->getInput("lrs_secret_2"));
@@ -535,7 +538,7 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 		$gui = new ilConfirmationGUI();
 		$gui->setFormAction($ilCtrl->getFormAction($this));
 		$gui->setHeaderText($this->txt('delete_type'));
-		$gui->addItem('type_id', $this->type->getTypeId(), $this->type->getName());
+		$gui->addItem('type_id', $this->type->getTypeId(), $this->type->getTitle());
 		$gui->setConfirm($lng->txt('delete'), 'deleteTypeConfirmed');
 		$gui->setCancel($lng->txt('cancel'), 'listTypes');
 

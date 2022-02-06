@@ -1,0 +1,27 @@
+
+
+<input id="startXapiObject" class="btn btn-default btn-sm" type="button" onclick="launchxapi()" value="Start" /><br/>
+<iframe name="basicXAPILaunchFrame"  id="basicXAPILaunchFrame" src="" width="1" height="1" scrolling="auto" frameborder="0" transparency></iframe>
+
+<script type="text/javascript">
+
+var open_mode_iframe = {OPEN_MODE_IFRAME};
+var link = '{LAUNCH_LINK}';
+
+function launchxapi() {
+	if (open_mode_iframe == 0) {
+		window.open(link, '{TARGET}', 'width={WIN_LAUNCH_WIDTH},height={WIN_LAUNCH_HEIGHT}');
+	} 
+	else {
+		document.getElementById('startXapiObject').style.display='none';
+		document.getElementById('basicXAPILaunchFrame').width='{FRAME_LAUNCH_WIDTH}px';
+		document.getElementById('basicXAPILaunchFrame').height='{FRAME_LAUNCH_HEIGHT}px';
+		document.getElementById('basicXAPILaunchFrame').src = link;
+	}
+}
+if (open_mode_iframe == 1) {
+	launchxapi();
+}
+
+</script>
+

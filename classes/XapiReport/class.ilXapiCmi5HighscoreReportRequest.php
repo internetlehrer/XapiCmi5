@@ -9,11 +9,12 @@
  * @author      Uwe Kohnle <kohnle@internetlehrer-gmbh.de>
  * @author      Björn Heyser <info@bjoernheyser.de>
  * @author      Stefan Schneider <info@eqsoft.de>
+ * 
  */
 class ilXapiCmi5HighscoreReportRequest extends ilXapiCmi5AbstractRequest
 {
     /**
-     * @var ilXapiCmi5Type
+     * @var ilXapiCmi5LrsType
      */
     protected $lrsType;
     
@@ -36,11 +37,11 @@ class ilXapiCmi5HighscoreReportRequest extends ilXapiCmi5AbstractRequest
     /**
      * @return ilXapiCmi5HighscoreReport
      */
-    public function queryReport($objId)
+    public function queryReport($objId, $refId)
     {
         $reportResponse = $this->sendRequest($this->linkBuilder->getUrl());
         
-        $report = new ilXapiCmi5HighscoreReport($reportResponse, $objId);
+        $report = new ilXapiCmi5HighscoreReport($reportResponse, $objId, $refId);
         
         return $report;
     }

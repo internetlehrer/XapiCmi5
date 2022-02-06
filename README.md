@@ -13,6 +13,8 @@ Requirements
 
 Ubuntu / Debian 
 
+php 7.3
+
 Dependant on php7.x Version:
 package: php7.x-curl
 
@@ -49,8 +51,14 @@ If you use ILIAS 5.4 you should import the additional lang files:
 .../XapiCmi5/Additional_for_ILIAS_5-4_en.lang for english
 
 
+Update
+------
+
+To get all functionalities you need to deactivate plugin after update first and then reactivate it.
+
+
 Version History
 ===============
 
-* All versions for ILIAS 5.3 and higher are maintained in GitHub
+* All versions for ILIAS 5.4 and higher are maintained in GitHub
 

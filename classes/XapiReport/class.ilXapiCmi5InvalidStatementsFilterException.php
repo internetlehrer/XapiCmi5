@@ -10,6 +10,6 @@
  * @author      Björn Heyser <info@bjoernheyser.de>
  * @author      Stefan Schneider <info@eqsoft.de>
  */
-class ilXapiCmi5InvalidStatementsFilterException extends Exception
+class ilXapiCmi5InvalidStatementsFilterException2 extends Exception
 {
 }

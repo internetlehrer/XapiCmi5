@@ -1,7 +1,9 @@
 <?php
     namespace XapiProxyPlugin;
 
-    require_once __DIR__.'/XapiProxyPolyFill.php';
+    use function array_key_exists;
+
+require_once __DIR__.'/XapiProxyPolyFill.php';
 
     class XapiProxy extends XapiProxyPolyFill {
 
@@ -187,24 +189,29 @@
         
         private function handleStatementEvaluation($xapiStatement)
         {
-            if ($this->plugin) {
-                require_once __DIR__.'/../class.ilObjXapiCmi5.php';
-                $this->setStatus($xapiStatement);
-            }
-            else {
-                /* @var ilObjCmiXapi $object */
-                $object = \ilObjectFactory::getInstanceByObjId($this->authToken->getObjId());
-
-                if( (string)$object->getLaunchMode() === (string)\ilObjCmiXapi::LAUNCH_MODE_NORMAL ) {
-                    // ToDo: check function hasContextActivitiesParentNotEqualToObject!
+            global $DIC;
+            /* @var \ilObjXapiCmi5 $object */
+            $object = \ilObjectFactory::getInstanceByObjId($this->authToken->getObjId());
+            if( (string)$object->getLaunchMode() === (string)$object::LAUNCH_MODE_NORMAL ) {
+                // ToDo: check function hasContextActivitiesParentNotEqualToObject!
+                if ($this->plugin) {
+                    include_once('./Customizing/global/plugins/Services/Repository/RepositoryObject/XapiCmi5/classes/XapiResults/class.ilXapiCmi5StatementEvaluation.php');
+                    $statementEvaluation = new \ilXapiCmi5StatementEvaluation($this->log(), $object);
+                    $updateStatus = $statementEvaluation->evaluateStatement($xapiStatement, $this->authToken->getUsrId());
+                    if ($updateStatus) $this->setStatus($xapiStatement);
+                } else {
                     $statementEvaluation = new \ilXapiStatementEvaluation($this->log(), $object);
                     $statementEvaluation->evaluateStatement($xapiStatement, $this->authToken->getUsrId());
-
+                    //ACHTUNG: Vergleichbare Prüfung wie bei setStatus fehlt hier; Außerdem zu kompliziert
                     \ilLPStatusWrapper::_updateStatus(
                         $this->authToken->getObjId(),
                         $this->authToken->getUsrId()
                     );
                 }
+            }
+            if ($xapiStatement->verb->id == self::TERMINATED_VERB) {
+                // ToDo : only cmi5 or also xapi? authToken object still used after that?
+                $this->authToken->delete();
             }
         }
 

@@ -64,10 +64,9 @@ view#:#Ansehen
 type_time_to_delete#:#Ablauf-Zeit
 type_time_to_delete_info#:#Ablauf-Zeit für einen Zugriffs-Token (bei Callback-Authentifizierung)
 instructions#:#Anleitung
-online_info#:#Schalten Sie den Content online, damit er für Lernerinnen sichtbar und verwendbar wird.
 view_log#:#Log ansehen
 view_statistics#:#Statistik ansehen
-type#:#Event-Typ
+type#:#Typ
 subtype#:#Untertyp
 integer#:#Zahl
 text#:#Text
@@ -108,7 +107,7 @@ lms_id#:#LMS-ID
 key#:#Schlüssel
 any#:#beliebig
 user#:#Nutzer
-delete#:#Log-Eintrag löschen
+delete#:#löschen
 view_log#:#Log ansehen
 view_logs#:#Logs ansehen
 events_deleted#:#Der ausgewählte Nutzer wurde gelöscht
@@ -174,7 +173,7 @@ conf_log_level_1#:#Fehler und Warnungen
 conf_log_level_2#:#Alles für ILIAS relevante
 conf_lrs_type_id#:#Name des LRS-Typ
 info_lrs_type_id#:#Aktuell wird nur Learning Locker unterstützt.
-conf_lrs_type_id_0#:#Learning Locker Version 2
+conf_lrs_type_id_0#:#Learning Locker
 conf_lrs_endpoint_1#:#Endpoint 1
 conf_lrs_endpoint_2#:#Endpoint 2
 info_lrs_endpoint#:#URL des Endpoints ohne '/' am Ende
@@ -194,26 +193,27 @@ conf_external_lrs#:#Externer LRS
 info_external_lrs#:#Bei einem externen LRS wird ein Hinweis an die Benutzer angezeigt. Ein externer LRS ist dadurch gegennzeichnet, dass der Betreiber dieser ILIAS-Installation unzureichenden Einfluss auf den LRS hat. Dies trifft dann zu, wenn keine Rechte zum Löschen vorliegen.
 conf_privacy_ident#:#Benutzerkennung (Voreinstellung)
 info_privacy_ident#:#Standard ist oftmals die E-Mail-Adresse.
-conf_privacy_ident_0#:#Kombination aus User-Id, URL und Mandant
-info_privacy_ident_0#:#Dieser ist mit jedem Aufruf identisch, erlaubt aber keinen direkten Rückschluss auf den ursprünglichen Nutzer.
-conf_privacy_ident_1#:#Nutzer-ID
-info_privacy_ident_1#:#Sendet die intere numerische Nutzer-ID als Kennung
-conf_privacy_ident_2#:#Login
-info_privacy_ident_2#:#Sendet den ILIAS-Loginnamen als Kennung
-conf_privacy_ident_3#:#E-Mail-Adresse
-info_privacy_ident_3#:#Sendet die E-Mail-Adresse des Nutzers als Kennung (Achtung: Eine E-Mail-Adresse darf nicht von mehreren Nutzern genutzt werden!)
-conf_privacy_ident_4#:#Zuf&auml;llige Zeichenkette
-info_privacy_ident_4#:#Erzeugt und sendet eine zuf&auml;llige Zeichenkette als Kennung
+conf_privacy_ident_info#:#Standard ist häufig die E-Mail-Adresse. Die eindeutige ILIAS-Plattform-ID lautet:
+conf_privacy_ident_il_uuid_user_id#:#ILIAS-Benutzer-ID kombiniert mit einer eindeutigen ILIAS-Plattform-ID, die als E-Mail-Adresse formatiert ist
+conf_privacy_ident_il_uuid_user_id_info#:#Dies ist identisch mit jedem Aufruf, erlaubt aber keine direkte Rückschlüsse auf den ILIAS-Benutzer.
+conf_privacy_ident_il_uuid_login#:#ILIAS-Login kombiniert mit einer eindeutigen ILIAS-Plattform-ID, die als E-Mail-Adresse formatiert ist
+conf_privacy_ident_il_uuid_login_info#:#Dies ist identisch mit jedem Aufruf, kann aber eine direkte Rückschlüsse auf den ILIAS-Benutzer zulassen.
+conf_privacy_ident_il_uuid_ext_account#:#Externe Benutzer-ID kombiniert mit einer eindeutigen ILIAS-Plattform-ID, die als E-Mail-Adresse formatiert ist
+conf_privacy_ident_il_uuid_ext_account_info#:#Dies ist identisch mit jedem Aufruf, kann aber eine direkte Rückschlüsse auf den Benutzer zulassen.
+conf_privacy_ident_il_uuid_random#:#Zufalls-ID kombiniert mit einer eindeutigen ILIAS-Plattform-ID, die als E-Mail-Adresse formatiert ist
+conf_privacy_ident_il_uuid_random_info#:#Pro ILIAS-Objekt und ILIAS-Benutzer wird eine Zufalls-ID erzeugt, die bei jedem Aufruf identisch bleibt. Rückschlüsse auf einen Benutzer sind sehr eingeschränkt, da Objekt-übergreifende Nutzerprofile praktisch nicht erstellt werden können.
+conf_privacy_ident_real_email#:#E-Mail Adresse
+conf_privacy_ident_real_email_info#:#Sendet die E-Mail-Adresse des Benutzers als Identifikation (Achtung: eine E-Mail-Adresse kann von mehreren Benutzern verwendet werden!)
 conf_privacy_name#:#Benutzername (Voreinstellung)
-info_privacy_name#:#Das Senden eines Benutzernamens ist in der Regel nicht erforderlich.
-conf_privacy_name_0#:#Keiner
-info_privacy_name_0#:#Sendet '-' statt eines Namens
-conf_privacy_name_1#:#Vorname
-info_privacy_name_1#:#Sendet den Benutzer-Vorname aus ILIAS
-conf_privacy_name_2#:#Anrede und Nachname
-info_privacy_name_2#:#Sendet Herr bzw. Frau (sofern angegeben) und den Nachnamen
-conf_privacy_name_3#:#Voller Name
-info_privacy_name_3#:#Sendet Titel, Vor- und Nachname
+conf_privacy_name_info#:#Das Senden eines Benutzernamens ist in der Regel nicht erforderlich.
+conf_privacy_name_none#:#Keiner
+conf_privacy_name_none_info#:#Sendet '-' anstelle eines Namens
+conf_privacy_name_firstname#:#Vorname
+conf_privacy_name_firstname_info#:#Sendet den Vornamen
+conf_privacy_name_lastname#:#Titel und Nachname
+conf_privacy_name_lastname_info#:#Sendet Herr oder Frau (sofern nicht anders angegeben) und den Nachnamen.
+conf_privacy_name_fullname#:#Vollständiger Name
+conf_privacy_name_fullname_info#:#Sendet Titel, Vorname und Nachname.
 conf_privacy_comment_default#:#Hinweis an Benutzer
 info_privacy_comment_default#:#Geben Sie hier bei Bedarf einen zusätzlichen Hinweis zum Datenschutz bei Nutzung dieses LRS ein.
 conf_remarks#:#Interne Anmerkungen
@@ -309,3 +309,70 @@ filtered_by#:#Gefiltered
 show_statements#:#Lernerfahrungen anzeigen
 show_statements_info#:#Die Lernerfahrungen anderer Benutzer können angezeigt werden, wenn das Recht 'XapiPlugin: Lernerfahrungen anderer Benutzer anzeigen' gesetzt ist.
 tab_statements#:#Lernerfahrungen
+cmix_add#:#xAPI/cmi5-Objekt hinzufügen
+cmix_add_cmi5_lm#:#cmi5 Lernmodul
+cmix_add_cmi5_lm_info#:#Diese Option sollte verwendet werden, wenn es sich bei den Inhalten um ein cmi5 konformes Lernmodul handelt. Verwandte Funktionen wie geeignete Berichte sind ohne weitere Konfigurationen verfügbar.
+cmix_add_xapi_standard_object#:#xAPI Standardobjekt
+cmix_add_xapi_standard_object_info#:#Verwenden Sie diese Option, um ein generisches Inhaltsmodul zu erhalten, das alle Funktionen wie z.B. verschiedene Berichte bietet. Diese Option bietet größtmögliche Flexibilität, erfordert aber eine komplexere Konfiguration.
+cmix_add_lrs_type#:#LRS-Typ
+cmix_add_source#:#Quelle
+cmix_add_source_url#:#URL der Ressource
+cmix_add_source_url_info#:#Verwenden Sie diese Option für eine externe Ressource.
+cmix_add_source_local_dir#:#Lokales Verzeichnis
+cmix_add_source_local_dir_info#:#Verwenden Sie diese Option für Content-Pakete auf Ihrem lokalen Gerät.
+cmix_add_source_upload_dir#:#Upload-Verzeichnis
+cmix_add_source_upload_dir_info#:#Verwenden Sie diese Option für Content-Pakete, die bereits in das ILIAS-Upload-Verzeichnis hochgeladen wurden, das auch für SCORM- und HTML-Pakete verwendet wird.
+cmix_add_source_upload_select#:#--- Bitte wählen Sie ---
+cmix_add_source_external_app#:#Nicht von ILIAS gestartete Ressource
+cmix_add_source_external_app_info#:#Verwenden Sie diese Option für separat gestartete Ressourcen wie z.B. Apps oder Simulationen. Benutzer müssen durch Angabe ihrer verwendeten E-Mail-Adresse dem Abruf der Daten zustimmen.
+conf_iframe#:#Eingebettet
+conf_iframe_info#:#Die Ressource wird statt in einem neuen Fenster in einem iframe in ILIAS angezeigt. Bitte beachten Sie, dass nicht alle Ressourcen es gestatten, in einem iframe angezeigt zu werden.
+conf_own_window#:#Gleiches Fenster
+conf_own_window_info#:#Der Inhalt wird im gleichen Fenster geöffnet und ersetzt den ILIAS-Bildschirm. Beim Verlassen des Inhalts kehrt der Benutzer zu ILIAS zurück - sofern die Ressource dies unterstützt.
+conf_new_window#:#Neues Fenster
+conf_new_window_info#:#Der Inhalt wird in einem neuen Fenster geöffnet. Beim Verlassen des Inhalts wird dieses Fenster geschlossen.
+type_cmi5#:#cmi5 Lernmodul
+type_generic#:#xAPI Standardobjekt
+conf_launch_mode#:#Startmodus
+conf_launch_mode_normal#:#Normal
+conf_launch_mode_normal_info#:#Daten bezogen auf den Lernerfolg sollen erfasst werden.
+conf_launch_mode_browse#:#Browse
+conf_launch_mode_browse_info#:#Diese Option soll es dem Benutzer ermöglichen, sich ohne Bewertung "umzusehen".
+conf_launch_mode_review#:#Review
+conf_launch_mode_review_info#:#Diese Option soll es dem Benutzer ermöglichen, bereits abgeschlossenes Material "erneut zu besuchen / zu überprüfen".
+conf_keep_lp#:#Verschlechterung des Lernfortschritts vermeiden
+conf_keep_lp_info#:#Der Status 'bearbeitet' des ILIAS-Lernfortschritts wird eingefroren.
+cmix_lrs_type#:#Learning Record Store (LRS)
+description_info#:#Die Beschreibung wird unterhalb des Titels angezeigt.
+online_info#:#Dadurch wird das Objekt für die Benutzer sichtbar und nutzbar.
+tbl_statements_date#:#Datum
+tbl_statements_actor#:#Benutzer
+tbl_statements_verb#:#Verb
+tbl_statements_object#:#Objekt
+tbl_action_raw_data#:#Rohdaten anzeigen
+cmix_all_verbs#:#Alle Verben
+cmix_adlnetgov_expapi_verbs_answered#:#Answered
+cmix_adlnetgov_expapi_verbs_asked#:#Asked
+cmix_adlnetgov_expapi_verbs_attempted#:#Attempted
+cmix_adlnetgov_expapi_verbs_attended#:#Attended
+cmix_adlnetgov_expapi_verbs_commented#:#Commented
+cmix_adlnetgov_expapi_verbs_completed#:#Completed
+cmix_adlnetgov_expapi_verbs_exited#:#Exited
+cmix_adlnetgov_expapi_verbs_experienced#:#Experienced
+cmix_adlnetgov_expapi_verbs_failed#:#Failed
+cmix_adlnetgov_expapi_verbs_imported#:#Imported
+cmix_adlnetgov_expapi_verbs_initialized#:#Initialized
+cmix_adlnetgov_expapi_verbs_interacted#:#Interacted
+cmix_adlnetgov_expapi_verbs_launched#:#Launched
+cmix_adlnetgov_expapi_verbs_mastered#:#Mastered
+cmix_adlnetgov_expapi_verbs_passed#:#Passed
+cmix_adlnetgov_expapi_verbs_preferred#:#Preferred
+cmix_adlnetgov_expapi_verbs_progressed#:#Progressed
+cmix_adlnetgov_expapi_verbs_registered#:#Registered
+cmix_adlnetgov_expapi_verbs_responded#:#Responded
+cmix_adlnetgov_expapi_verbs_resumed#:#Resumed
+cmix_adlnetgov_expapi_verbs_scored#:#Scored
+cmix_adlnetgov_expapi_verbs_shared#:#Shared
+cmix_adlnetgov_expapi_verbs_suspended#:#Suspended
+cmix_adlnetgov_expapi_verbs_terminated#:#Terminated
+cmix_adlnetgov_expapi_verbs_voided#:#Voided

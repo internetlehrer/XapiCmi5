@@ -71,29 +71,26 @@
      * handle XapiProxy Init
      */
     require_once __DIR__.'/classes/XapiProxy/XapiProxy.php';
-    $dic = $GLOBALS['DIC'];
     
-    $dic['xapiproxy'] = function ($c) use ($client, $token, $plugin) {
-        return new XapiProxy($client, $token ,$plugin);
-    };
+    $xapiproxy = new XapiProxy($client, $token ,$plugin);
 
     /**
      * handle Lrs Init
      */
     try {
-        $dic['xapiproxy']->initLrs();
+        $xapiproxy->initLrs();
     }
-    catch(Exception $e) { // ?
-        $dic['xapiproxy']->log()->error($dic['xapiproxy']->getLogMessage($e->getMessage()));
+    catch(\Exception $e) {
+        $xapiproxy->log()->error($e->getMessage());
     }
 
     require_once __DIR__.'/classes/XapiProxy/XapiProxyRequest.php';
     require_once __DIR__.'/classes/XapiProxy/XapiProxyResponse.php';
-    $req = new XapiProxyRequest();
-    $resp = new XapiProxyResponse();
+    $req = new XapiProxyRequest($xapiproxy);
+    $resp = new XapiProxyResponse($xapiproxy);
     
-    $dic['xapiproxy']->setXapiProxyRequest($req);
-    $dic['xapiproxy']->setXapiProxyResponse($resp);
+    $xapiproxy->setXapiProxyRequest($req);
+    $xapiproxy->setXapiProxyResponse($resp);
 
     $req->handle();
 ?>

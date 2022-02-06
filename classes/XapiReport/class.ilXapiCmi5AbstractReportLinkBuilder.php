@@ -2,13 +2,14 @@
 
 /* Copyright (c) 1998-2019 ILIAS open source, Extended GPL, see docs/LICENSE */
 
-
+require_once __DIR__.'/../class.ilObjXapiCmi5.php';
 /**
  * Class XapiAbstractReportLinkBuilder
  *
  * @author      Uwe Kohnle <kohnle@internetlehrer-gmbh.de>
  * @author      Björn Heyser <info@bjoernheyser.de>
  * @author      Stefan Schneider <info@eqsoft.de>
+ * 
  */
 abstract class ilXapiCmi5AbstractReportLinkBuilder
 {
@@ -17,6 +18,11 @@ abstract class ilXapiCmi5AbstractReportLinkBuilder
      */
     protected $objId;
     
+    /**
+     * @var int
+     */
+    protected $refId;
+
     /**
      * @var string
      */
@@ -36,10 +42,12 @@ abstract class ilXapiCmi5AbstractReportLinkBuilder
      */
     public function __construct(
         $objId,
+        $refId,
         $aggregateEndPoint,
         ilXapiCmi5StatementsReportFilter $filter
     ) {
         $this->objId = $objId;
+        $this->refId = $refId;
         $this->aggregateEndPoint = $aggregateEndPoint;
         $this->filter = $filter;
     }
@@ -88,10 +96,25 @@ abstract class ilXapiCmi5AbstractReportLinkBuilder
     }
     
     /**
+     * @return int
+     */
+    public function getRefId()
+    {
+        return $this->refId;
+    }
+    /**
      * @return string
      */
     public function getAggregateEndPoint()
     {
         return $this->aggregateEndPoint;
+    }
+
+    /**
+     * @return ilObjXapiCmi5
+     */
+    public function getObj()
+    {
+        return ilObjXapiCmi5::getInstance($this->getRefId());
     }
 }

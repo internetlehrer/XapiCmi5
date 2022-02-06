@@ -4,12 +4,15 @@
 
 require_once __DIR__.'/class.ilXapiCmi5AbstractReportLinkBuilder.php';
 require_once __DIR__.'/../class.ilXapiCmi5User.php';
+require_once __DIR__.'/../class.ilObjXapiCmi5.php';
+
 /**
  * Class ilXapiCmi5StatementsReportLinkBuilder
  *
  * @author      Uwe Kohnle <kohnle@internetlehrer-gmbh.de>
  * @author      Björn Heyser <info@bjoernheyser.de>
  * @author      Stefan Schneider <info@eqsoft.de>
+ * 
  */
 class ilXapiCmi5StatementsReportLinkBuilder extends ilXapiCmi5AbstractReportLinkBuilder
 {
@@ -18,9 +21,12 @@ class ilXapiCmi5StatementsReportLinkBuilder extends ilXapiCmi5AbstractReportLink
      */
     protected function buildPipeline() : array
     {
+        $cmi5_extensions_query = false;
+
         $pipeline = array();
         
         $pipeline[] = $this->buildFilterStage();
+
         $pipeline[] = $this->buildOrderingStage();
         
         $pipeline[] = array('$facet' => array(
@@ -40,8 +46,6 @@ class ilXapiCmi5StatementsReportLinkBuilder extends ilXapiCmi5AbstractReportLink
         //$log = ilLoggerFactory::getLogger('cmix');
         //$log->debug("aggregation pipeline:\n" . json_encode($pipeline, JSON_PRETTY_PRINT));
         
-        //echo '<pre>'.json_encode($pipeline, JSON_PRETTY_PRINT).'</pre>'; exit;
-        
         return $pipeline;
     }
     
@@ -54,39 +58,15 @@ class ilXapiCmi5StatementsReportLinkBuilder extends ilXapiCmi5AbstractReportLink
         if ($this->filter->getLimit()) {
             $stage[] = array('$limit' => (int) $this->filter->getLimit());
         }
-        
         return $stage;
     }
     
     protected function buildFilterStage()
     {
+        $cmi5_extensions_query = false;
         $stage = array();
-        
         $stage['statement.object.objectType'] = 'Activity';
-        $stage['statement.object.id'] = [
-            '$regex' => '^' . preg_quote($this->filter->getActivityId()) . ''
-        ];
-        
         $stage['statement.actor.objectType'] = 'Agent';
-        
-        // require_once 'Services/User/classes/class.ilObjUser.php';
-        if ($this->filter->getActor()) {
-            // $stage['statement.actor.mbox'] = "mailto:".ilXapiCmi5User::getUsrIdentPlugin($this->filter->getActor()->getUsrId(),$this->getObjId());
-            $stage['$or'] = [];
-            foreach (ilXapiCmi5User::getUsersForObject($this->getObjId()) as $cmixUser) {
-				if ($cmixUser->getUsrId() == $this->filter->getActor()->getUsrId()) {
-					$stage['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
-				}
-            }
-        } else {
-            $stage['$or'] = [];
-            foreach (ilXapiCmi5User::getUsersForObject($this->getObjId()) as $cmixUser) {
-                $stage['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
-            // foreach (ilXapiCmi5User::getUsersForObjectPlugin($this->getObjId()) as $usr_id) {
-                // $stage['$or'][] = ['statement.actor.mbox' => "mailto:".ilXapiCmi5User::getUsrIdentPlugin($usr_id,$this->getObjId())];
-            }
-        }
-        //$GLOBALS['DIC']->logger()->root()->log($stage);
         if ($this->filter->getVerb()) {
             $stage['statement.verb.id'] = $this->filter->getVerb();
         }
@@ -102,14 +82,128 @@ class ilXapiCmi5StatementsReportLinkBuilder extends ilXapiCmi5AbstractReportLink
                 $stage['statement.timestamp']['$lt'] = $this->filter->getEndDate()->toXapiTimestamp();
             }
         }
+        $obj = $this->getObj();
+        $activityId = array();
 
+        if ($cmi5_extensions_query == true && $obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5 && !$obj->isMixedContentType())
+        {
+            // https://github.com/AICC/CMI-5_Spec_Current/blob/quartz/cmi5_spec.md#963-extensions
+            $activityId['statement.context.extensions.https://ilias&46;de/cmi5/activityid'] = $obj->getActivityId();
+        }
+        else
+        {
+            // for case-insensive: '$regex' => '(?i)^' . preg_quote($this->filter->getActivityId()) . ''
+            $activityQuery = [
+                '$regex' => '^' . preg_quote($this->filter->getActivityId()) . ''
+            ];
+            $activityId['$or'] = [];
+            // ToDo : restriction to exact activityId?
+            // query existing activityId in grouping? we have not enough control over acticityId in xapi statements  
+            // another way put the obj_id into a generated registration, but we are not sure that content will put this into statement context 
+            // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
+            $activityId['$or'][] = ['statement.object.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+        }
+        $actor = array();
+        
+        // mixed
+        if ($obj->isMixedContentType())
+        {
+            if ($this->filter->getActor())
+            {
+                // could be registration query but so what...
+                foreach (ilXapiCmi5User::getUserIdents($this->getObjId(), $this->filter->getActor()->getUsrId()) as $usrIdent)
+                {
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"]; // older statements
+                    $actor['$or'][] = ['statement.actor.account.name' => "{$usrIdent}"];   
+                }
+                // not launched yet?
+                if (count($actor) == 0)
+                {
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$this->filter->getActor()->getUsrIdent()}"]; // older statements
+                    $actor['$or'][] = ['statement.actor.account.name' => "{$this->filter->getActor()->getUsrIdent()}"];
+                }
+            }
+            else
+            {
+                $actor['$or'] = [];
+                foreach (ilXapiCmi5User::getUsersForObject($this->getObjId()) as $cmixUser) {
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
+                    $actor['$or'][] = ['statement.actor.account.name' => "{$cmixUser->getUsrIdent()}"];
+                }
+            }
+        }
+        elseif ($obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5) // new
+        {
+            if ($this->filter->getActor())
+            {
+                $cmixUser = $this->filter->getActor();
+                $actor['statement.context.registration'] = $cmixUser->getRegistration();
+            }
+        }
+        else
+        {
+            if ($this->filter->getActor())
+            {
+                foreach (ilXapiCmi5User::getUserIdents($this->getObjId(), $this->filter->getActor()->getUsrId()) as $usrIdent)
+                {
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$usrIdent}"];   
+                }
+                // not launched yet?
+                if (count($actor) == 0)
+                {
+                    $actor['statement.actor.mbox'] = $this->filter->getActor()->getUsrIdent();
+                }
+            }
+            /**
+             * i don't think this will work with user >~ 100 
+             * this will blow up the GET request 
+             * GET Queries are sometimes limited to an amount of characters
+             */
+            else
+            {
+                $actor['$or'] = [];
+                foreach (ilXapiCmi5User::getUsersForObject($this->getObjId()) as $cmixUser) {
+                    $actor['$or'][] = ['statement.actor.mbox' => "mailto:{$cmixUser->getUsrIdent()}"];
+                }
+            }
+        }
+        $stage['$and'] = [];
+        $stage['$and'][] = $activityId;
+        if (count($actor) > 0) {
+            $stage['$and'][] = $actor;
+        }
         return array('$match' => $stage);
     }
     
     protected function buildOrderingStage()
     {
+        $obj = $this->getObj();
+        $actor = '';
+        if ($obj->getPrivacyName() != ilObjXapiCmi5::PRIVACY_NAME_NONE)
+        {
+            $actor = 'statement.actor.name';
+        }
+        else {
+            if ($obj->getContentType() == ilObjXapiCmi5::CONT_TYPE_CMI5)
+            {
+                if ($obj->getPublisherId() == '') // old
+                {
+                    $actor = 'statement.actor.mbox';
+                }
+                else
+                {
+                    $actor = 'statement.actor.account.name';
+                }
+                
+            }
+            else 
+            {
+                $actor = 'statement.actor.mbox';
+            }
+        }
         switch ($this->filter->getOrderField()) {
-            case 'object':
+            case 'object': // definition/description are displayed in the Table if not empty => sorting not alphabetical on displayed fields
                 $field = 'statement.object.id';
                 break;
                 
@@ -118,7 +212,7 @@ class ilXapiCmi5StatementsReportLinkBuilder extends ilXapiCmi5AbstractReportLink
                 break;
                 
             case 'actor':
-                $field = 'statement.actor.name';
+                $field = $actor;
                 break;
                 
             case 'date':
