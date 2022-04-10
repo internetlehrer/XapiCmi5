@@ -128,7 +128,10 @@ class ilXapiCmi5LrsType
 	/** @var bool $no_substatements */
 	protected $no_substatements = false;
 
-	/**
+    /** @var bool $noUnallocatableStatements */
+    protected $noUnallocatableStatements = false;
+
+    /**
 	 * Constructor
 	 */
 	public function __construct($a_type_id = 0)
@@ -670,6 +673,22 @@ class ilXapiCmi5LrsType
     /**
      * @return bool
      */
+    public function getNoUnallocatableStatements(): bool
+    {
+        return $this->noUnallocatableStatements;
+    }
+
+    /**
+     * @param bool $noUnallocatable
+     */
+    public function setNoUnallocatableStatements(bool $noUnallocatable)
+    {
+        $this->noUnallocatableStatements = $noUnallocatable;
+    }
+
+    /**
+     * @return bool
+     */
     public function getForcePrivacySettings()
     {
         return $this->force_privacy_settings;
@@ -785,7 +804,8 @@ class ilXapiCmi5LrsType
             $this->setTimestamp((bool)$row->c_timestamp);
             $this->setDuration((bool)$row->duration);
 			$this->setNoSubstatements((bool)$row->no_substatements);
-			$this->setLrsTypeId($row->lrs_type_id);			
+            $this->setNoUnallocatableStatements((bool)$row->no_unallocatable_statements);
+			$this->setLrsTypeId($row->lrs_type_id);
 			$this->setLrsEndpoint2($row->lrs_endpoint_2);
 			$this->setLrsKey2($row->lrs_key_2);
 			$this->setLrsSecret2($row->lrs_secret_2);
@@ -857,6 +877,7 @@ class ilXapiCmi5LrsType
                 'c_timestamp' => array('integer', (int)$this->getTimestamp()),
                 'duration' => array('integer', (int)$this->getDuration()),
 				'no_substatements' => array('integer', (int)$this->getNoSubstatements()),
+                'no_unallocatable_statements' => array('integer', (int)$this->getNoUnallocatableStatements()),
 				'lrs_type_id' => array('integer', $this->getLrsTypeId()),
 				'lrs_endpoint_2' => array('text', $this->getLrsEndpoint2()),
 				'lrs_key_2' => array('text', $this->getLrsKey2()),
@@ -1103,7 +1124,8 @@ class ilXapiCmi5LrsType
                 hide_data = %s, 
                 c_timestamp = %s, 
                 duration = %s, 
-                no_substatements = %s
+                no_substatements = %s,
+			    no_unallocatable_statements = %s
             WHERE lrs_type_id = %s
 		";
         
@@ -1111,6 +1133,7 @@ class ilXapiCmi5LrsType
             $query,
             ['text',
              'text',
+             'integer',
              'integer',
              'integer',
              'integer',
@@ -1143,6 +1166,7 @@ class ilXapiCmi5LrsType
              $this->getTimestamp(),
              $this->getDuration(),
              $this->getNoSubstatements(),
+             $this->getNoUnallocatableStatements(),
              $this->getTypeId()
             ]
         );

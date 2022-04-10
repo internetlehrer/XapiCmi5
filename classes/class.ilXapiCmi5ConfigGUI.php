@@ -395,7 +395,12 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
         $item->setChecked($this->type->getNoSubstatements());
         $form->addItem($item);
 
-        $item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_privacy_setting_conf'), 'force_privacy_setting');
+		$item = new ilCheckboxInputGUI($this->plugin_object->txt('no_unallocatable_label'), 'no_unallocatable');
+		$item->setInfo($this->plugin_object->txt('no_unallocatable_info'));
+		$item->setChecked($this->type->getNoUnallocatableStatements());
+		$form->addItem($item);
+
+		$item = new ilRadioGroupInputGUI($this->plugin_object->txt('conf_privacy_setting_conf'), 'force_privacy_setting');
         $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_setting_default'), 0);
         $item->addOption($op);
         $op = new ilRadioOption($this->plugin_object->txt('conf_privacy_setting_force'), 1);
@@ -496,6 +501,7 @@ class ilXapiCmi5ConfigGUI extends ilPluginConfigGUI
 			$this->type->setTimestamp((bool)$this->form->getInput("timestamp"));
 			$this->type->setDuration((bool)$this->form->getInput("duration"));
 			$this->type->setNoSubstatements((bool)$this->form->getInput("no_substatements"));
+			$this->type->setNoUnallocatableStatements((bool)$this->form->getInput("no_unallocatable"));
 
 			$this->type->setForcePrivacySettings((bool) $this->form->getInput("force_privacy_setting"));
 			if ($this->type->getForcePrivacySettings()) {

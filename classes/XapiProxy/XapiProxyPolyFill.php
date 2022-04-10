@@ -13,6 +13,7 @@
         protected $specificAllowedStatements = NULL;
         protected $replacedValues = NULL;
         protected $blockSubStatements = false;
+        protected $blockUnallocatableStatements = false;
         protected $cmdParts;
         protected $method;
 
@@ -187,6 +188,7 @@
                                 {$this->table_prefix}_settings.c_timestamp, 
                                 {$this->table_prefix}_settings.duration, 
                                 {$this->table_prefix}_settings.no_substatements,
+                                {$this->table_prefix}_settings.no_unallocatable_statements,
                                 {$this->table_prefix}_settings.privacy_ident
                         FROM {$this->table_prefix}_settings, {$this->table_prefix}_token 
                         WHERE {$this->table_prefix}_settings.obj_id = {$this->table_prefix}_token.obj_id AND {$this->table_prefix}_token.token = " . $db->quote($this->token, 'text');
@@ -249,6 +251,10 @@
                 if ((bool)$row->no_substatements) {
                     $this->blockSubStatements = true;
                     $this->log()->debug($this->msg('getBlockSubStatements: ' . $this->blockSubStatements));
+                }
+                if ((bool)$row->no_unallocatable_statements) {
+                    $this->blockUnallocatableStatements = true;
+                    $this->log()->debug($this->msg('getBlockUnallocatableStatements: ' . $this->blockUnallocatableStatements));
                 }
                 $lrs->setPrivacyIdent((int)$row->privacy_ident);
             }

@@ -269,6 +269,9 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
     /** @var bool $no_substatements */
     protected $no_substatements = false;
 
+    /** @var bool $noUnallocatableStatements */
+    protected $noUnallocatableStatements = false;
+
     /** @var ilXapiCmi5User $currentCmixUser */
     protected $currentCmixUser = null;
 
@@ -969,6 +972,22 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
 	}
 
     /**
+     * @return bool
+     */
+    public function getNoUnallocatableStatements(): bool
+    {
+        return $this->noUnallocatableStatements;
+    }
+
+    /**
+     * @param bool $noUnallocatable
+     */
+    public function setNoUnallocatableStatements(bool $noUnallocatable)
+    {
+        $this->noUnallocatableStatements = $noUnallocatable;
+    }
+
+    /**
      * @return string
      */
     public function getUserPrivacyComment()
@@ -1107,6 +1126,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
             $this->setTimestamp((bool) $row['c_timestamp']);
             $this->setDuration((bool) $row['duration']);
             $this->setNoSubstatements((bool) $row['no_substatements']);
+            $this->setNoUnallocatableStatements((bool) $row['no_unallocatable_statements']);
 
             $this->setUserPrivacyComment($row['usr_privacy_comment']);
             
@@ -1187,7 +1207,8 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
             'hide_data' => ['integer', (int)$this->getHideData()],
             'c_timestamp' => ['integer', (int)$this->getTimestamp()],
             'duration' => ['integer', (int)$this->getDuration()],
-            'no_substatements' => ['integer', (int)$this->getNoSubstatements()]
+            'no_substatements' => ['integer', (int)$this->getNoSubstatements()],
+            'no_unallocatable_statements' => ['integer', (int)$this->getNoUnallocatableStatements()]
         ]);
         
         //$this->saveRepositoryActivationSettings();
@@ -1256,13 +1277,15 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
                 hide_data = %s, 
                 c_timestamp = %s, 
                 duration = %s, 
-                no_substatements = %s
+                no_substatements = %s,
+			    no_unallocatable_statements = %s
             WHERE lrs_type_id = %s
 		";
         
         $DIC->database()->manipulateF(
             $query,
             ['integer',
+             'integer',
              'integer',
              'integer',
              'integer',
@@ -1296,6 +1319,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
              $lrsType->getTimestamp(),
              $lrsType->getDuration(),
              $lrsType->getNoSubstatements(),
+             $lrsType->getNoUnallocatableStatements(),
              $lrsType->getTypeId()
             ]
         );
@@ -1636,7 +1660,8 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
             'hide_data' => (int) $this->getHideData(),
             'c_timestamp' => (int) $this->getTimestamp(),
             'duration' => (int) $this->getDuration(),
-            'no_substatements' => (int) $this->getNoSubstatements()
+            'no_substatements' => (int) $this->getNoSubstatements(),
+            'no_unallocatable_statements' => (int) $this->getNoUnallocatableStatements()
 			//'bypass_proxy' => (int) $this->isBypassProxyEnabled()
         ];
         return $mapping;
@@ -1700,6 +1725,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
         $new_obj->setTimestamp($this->getTimestamp());
         $new_obj->setDuration($this->getDuration());
         $new_obj->setNoSubstatements($this->getNoSubstatements());
+        $new_obj->setNoUnallocatableStatements($this->getNoUnallocatableStatements());
         $new_obj->update();
 		
 		if ($this->getSourceType() == self::SRC_TYPE_LOCAL) {
@@ -2179,6 +2205,7 @@ class ilObjXapiCmi5 extends ilObjectPlugin implements ilLPStatusPluginInterface
             $activityId['$or'] = [];
             $activityId['$or'][] = ['statement.object.id' => $activityQuery];
             $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.grouping.id' => $activityQuery];
         }
 
         $sessionId = array();

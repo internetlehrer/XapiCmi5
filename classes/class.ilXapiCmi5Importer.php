@@ -252,6 +252,7 @@ class ilXapiCmi5Importer extends ilXmlImporter {
         $this->_cmixObj->setTimestamp($this->_moduleProperties['Timestamp']);
         $this->_cmixObj->setDuration($this->_moduleProperties['Duration']);
         $this->_cmixObj->setNoSubstatements($this->_moduleProperties['NoSubstatements']);
+        $this->_cmixObj->setNoUnallocatableStatements($this->_moduleProperties['NoUnallocatableStatements']);
         $this->_cmixObj->setPublisherId((string)$this->_moduleProperties['PublisherId']);
 //        $this->_cmixObj->setAnonymousHomepage($this->_moduleProperties['AnonymousHomepage']);
         $this->_cmixObj->setMoveOn((string)$this->_moduleProperties['MoveOn']);
@@ -395,6 +396,7 @@ class ilXapiCmi5Importer extends ilXmlImporter {
 //			$entity->setTimestamp((int) $xml->timestamp);
 //			$entity->setDuration((int) $xml->duration);
 //			$entity->setNoSubstatements((int) $xml->no_substatements);
+//			$entity->setNoUnallocatableStatements((int) $xml->no_unallocatable_statements);
 //			$entity->update();
 //			$a_mapping->addMapping("Plugins/XapiCmi5", "xxcf", $a_id, $entity->getId());
 //		} catch (Exception $e) {

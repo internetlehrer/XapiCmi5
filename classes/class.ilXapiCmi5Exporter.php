@@ -97,6 +97,7 @@ class ilXapiCmi5Exporter extends ilXmlExporter {
 //		$writer->xmlElement("timestamp", null, (int)$entity->getTimestamp());
 //		$writer->xmlElement("duration", null, (int)$entity->getDuration());
 //		$writer->xmlElement("no_substatements", null, (int)$entity->getNoSubstatements());
+//      $writer->xmlElement("no_unallocatable_statements", null, (int)$entity->getNoUnallocatableStatements());
 //		$writer->xmlEndTag("xxcf");
 //
 //		return $writer->xmlDumpMem(false);;

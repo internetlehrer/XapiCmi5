@@ -431,6 +431,12 @@ class ilXapiCmi5SettingsGUI
             if ($this->object->getLrsType()->getForcePrivacySettings()) $item->setDisabled(true);
             $form->addItem($item);
 
+            $item = new ilCheckboxInputGUI($this->getText('no_unallocatable_label'), 'no_unallocatable');
+            $item->setInfo($this->getText('no_unallocatable_info'));
+            $item->setChecked($this->object->getNoUnallocatableStatements());
+            if ($this->object->getLrsType()->getForcePrivacySettings()) $item->setDisabled(true);
+            $form->addItem($item);
+
         }
         
         $item = new ilFormSectionHeaderGUI();
@@ -563,6 +569,7 @@ class ilXapiCmi5SettingsGUI
                 $this->object->setTimestamp((bool)$form->getInput("timestamp"));
                 $this->object->setDuration((bool)$form->getInput("duration"));
                 $this->object->setNoSubstatements((bool)$form->getInput("no_substatements"));
+                $this->object->setNoUnallocatableStatements((bool)$form->getInput("no_unallocatable"));
             }
         } else { //SourceTypeExternal
             $this->object->setBypassProxyEnabled(true);

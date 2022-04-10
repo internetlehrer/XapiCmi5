@@ -1449,3 +1449,23 @@ if ($ilDB->tableColumnExists('xxcf_results', 'status')) {
     );
 }
 ?>
+<#47>
+<?php
+if ( !$ilDB->tableColumnExists('xxcf_settings', 'no_unallocatable_statements') ) {
+    $ilDB->addTableColumn('xxcf_settings', 'no_unallocatable_statements', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+
+if ( !$ilDB->tableColumnExists('xxcf_lrs_types', 'no_unallocatable_statements') ) {
+    $ilDB->addTableColumn('xxcf_lrs_types', 'no_unallocatable_statements', array(
+        'type' => 'integer',
+        'length' => 1,
+        'notnull' => true,
+        'default' => 0
+    ));
+}
+?>

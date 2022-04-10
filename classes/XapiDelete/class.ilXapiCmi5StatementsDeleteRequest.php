@@ -402,6 +402,7 @@ class ilXapiCmi5StatementsDeleteRequest
             // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
             $activityId['$or'][] = ['statement.object.id' => $activityQuery];
             $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.grouping.id' => $activityQuery];
         }
         $actor = array();
         
@@ -468,6 +469,7 @@ class ilXapiCmi5StatementsDeleteRequest
             // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
             $activityId['$or'][] = ['statement.object.id' => $activityQuery];
             $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.grouping.id' => $activityQuery];
         }
 
         $actor = array();
@@ -585,6 +587,7 @@ class ilXapiCmi5StatementsDeleteRequest
             // $activityId['$or'][] = ['statement.object.id' => "{$this->filter->getActivityId()}"];
             $activityId['$or'][] = ['statement.object.id' => $activityQuery];
             $activityId['$or'][] = ['statement.context.contextActivities.parent.id' => $activityQuery];
+            $activityId['$or'][] = ['statement.context.contextActivities.grouping.id' => $activityQuery];
         }
         
         $actor = array();

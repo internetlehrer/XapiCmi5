@@ -284,6 +284,8 @@ duration_label#:#Zeitdauer 'duration'
 duration_info#:#Die Zeitdauer kann z.B. für die Beantwortung einer Aufgabe erfasst werden. Die Zeitdauer 'duration' wird durch diese Option auf den Standardwert 0 Sekunden (PT00.000S) gesetzt.
 no_substatements_label#:#Substatements nicht speichern
 no_substatements_info#:#Mit dieser Option, die nur für den ILIAS LRS-Proxy zur Verfügung steht, kann die Speicherung von untergeordneten Statements unterdrückt werden. Dies kann z.B. die Beantwortung einzelner Aufgaben in einem Test beeinflussen. Dem Content wird mitgeteilt, dass die Statements gespeichert worden wären.
+no_unallocatable_label#:#Nur zuordnenbare Statements speichern
+no_unallocatable_info#:#Diese Option ist nur für xAPI-Objekte, nicht jedoch für cmi5-Objekte bedeutsam. Mit dieser Option, die nur für den ILIAS LRS-Proxy zur Verfügung steht, kann die Speicherung von Statements unterdrückt werden, die nicht über grouping oder parent der Activity-Id dieses Objekts zugeordnet werden können. Für Löschvorgänge bei xAPI-Objekten ist diese Zuordnung erforderlich.
 lrs_type#:#LRS-Typ
 lrs_authentication#:#Authentifizierung
 conf_privacy_setting_conf#:#Konfigurationsoptionen

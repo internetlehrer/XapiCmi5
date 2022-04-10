@@ -284,6 +284,8 @@ duration_label#:#Duration
 duration_info#:#The duration can be entered e.g. for answering a task. The duration is set to the default value 0 seconds (PT00.000S) by this option.
 no_substatements_label#:#Do not store substatements
 no_substatements_info#:#With this option - which is only available for the ILIAS LRS proxy - the storage of subordinate statements can be suppressed. This can for example affect the answering of single tasks in a test. The content is informed that the statements would have been saved.
+no_unallocatable_label#:#Store only allocatable statements.
+no_unallocatable_info#:#This option is only relevant for xAPI objects, but not for cmi5 objects. This option - which is only available for the ILIAS LRS proxy - can be used to suppress the storage of statements that cannot be assigned to the activity id of this object via grouping or parent. This assignment is required for deletion operations for xAPI objects.
 lrs_type#:#LRS-type
 lrs_authentication#:#Authentication
 conf_privacy_setting_conf#:#Configuration Options

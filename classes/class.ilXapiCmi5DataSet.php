@@ -56,6 +56,7 @@ class ilXapiCmi5DataSet extends ilDataSet
          ,"Timestamp" => ["db_col" => "c_timestamp", "db_type" => "integer"]
          ,"Duration" => ["db_col" => "duration", "db_type" => "integer"]
          ,"NoSubstatements" => ["db_col" => "no_substatements", "db_type" => "integer"]
+         ,"NoUnallocatableStatements" => ["db_col" => "no_unallocatable_statements", "db_type" => "integer"]
          ,"PublisherId" => ["db_col" => "publisher_id", "db_type" => "text"]
          ,"AnonymousHomepage" => ["db_col" => "anonymous_homepage", "db_type" => "integer"]
          ,"MoveOn" => ["db_col" => "moveon", "db_type" => "text"]

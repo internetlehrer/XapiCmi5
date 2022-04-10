@@ -35,13 +35,17 @@ require_once __DIR__.'/XapiProxyPolyFill.php';
             return $this->replacedValues;
         }
 
-        public function specificAllowedStatements() {
-            return $this->specificAllowedStatements;
-        }
+//        public function specificAllowedStatements() {
+//            return $this->specificAllowedStatements;
+//        }
 
-        public function blockSubStatements() {
-            return $this->blockSubStatements;
-        }
+//        public function blockSubStatements() {
+//            return $this->blockSubStatements;
+//        }
+
+//        public function blockUnallocatableStatements() {
+//            return $this->blockUnallocatableStatements;
+//        }
 
         public function cmdParts() {
             return $this->cmdParts;
@@ -93,7 +97,7 @@ require_once __DIR__.'/XapiProxyPolyFill.php';
 
         public function processStatements($request, $body) {
             // everything is allowed
-            if (!is_array($this->specificAllowedStatements) && !$this->blockSubStatements) {
+            if (!is_array($this->specificAllowedStatements) && !$this->blockSubStatements && !$this->blockUnallocatableStatements) {
                 $this->log()->debug($this->msg("all statement are allowed"));
                 return NULL;
             }
@@ -101,11 +105,18 @@ require_once __DIR__.'/XapiProxyPolyFill.php';
             // single statement object
             if (is_object($obj) && isset($obj->verb)) {
                 $this->log()->debug($this->msg("json is object and statement"));
-                $isSubStatement = $this->isSubStatementCheck($obj);
                 $verb = $obj->verb->id;
-                if ($this->blockSubStatements && $isSubStatement) {
-                    $this->log()->debug($this->msg("sub-statement is NOT allowed, fake response - " . $verb));
-                    $this->xapiProxyResponse->fakeResponseBlocked(NULL);
+                if ($this->blockSubStatements) {
+                    if($this->isSubStatementCheck($obj)) {
+                        $this->log()->debug($this->msg("sub-statement is NOT allowed, fake response - " . $verb));
+                        $this->xapiProxyResponse->fakeResponseBlocked(null);
+                    }
+                }
+                if ($this->blockUnallocatableStatements) {
+                    if ($this->isUnallocatableStatement($obj)) {
+                        $this->log()->debug($this->msg("unallocatable statement is NOT allowed, fake response - " . $verb));
+                        $this->xapiProxyResponse->fakeResponseBlocked(null);
+                    }
                 }
                 // $specificAllowedStatements
                 if (!is_array($this->specificAllowedStatements)) {
@@ -127,12 +138,21 @@ require_once __DIR__.'/XapiProxyPolyFill.php';
                 $up = array();
                 for ($i=0; $i<count($obj); $i++) {
                     array_push($ret,$obj[$i]->id); // push every statementid for fakePostResponse
-                    $isSubStatement = $this->isSubStatementCheck($obj[$i]);
                     $verb = $obj[$i]->verb->id;
-                    if ($this->blockSubStatements && $isSubStatement) {
-                        $this->log()->debug($this->msg("sub-statement is NOT allowed - " .$verb));
+                    $continue = true;
+                    if ($this->blockSubStatements) {
+                        if ($this->isSubStatementCheck($obj[$i])) {
+                            $this->log()->debug($this->msg("sub-statement is NOT allowed - " . $verb));
+                            $continue = false;
+                        }
                     }
-                    else {
+                    if ($this->blockUnallocatableStatements) {
+                        if ($this->isUnallocatableStatement($obj[$i])) {
+                            $this->log()->debug($this->msg("unallocatable statement is NOT allowed - " . $verb));
+                            $continue = false;
+                        }
+                    }
+                    if ($continue) {
                         if (!is_array($this->specificAllowedStatements) || (is_array($this->specificAllowedStatements) && in_array($verb,$this->specificAllowedStatements))) {
                             $this->log()->debug($this->msg("statement is allowed - " . $verb));
                             array_push($up,$obj[$i]);
@@ -249,17 +269,55 @@ require_once __DIR__.'/XapiProxyPolyFill.php';
         }
 
         private function isSubStatementCheck($obj) {
-            if (
-                isset($obj->context) &&
-                isset($obj->context->contextActivities) &&
-                is_array($obj->context->contextActivities->parent)
-            ) {
+            $object = \ilObjectFactory::getInstanceByObjId($this->authToken->getObjId()); // get ActivityId in Constructor for better performance, is also used in handleEvaluationStatement
+            $objActivityId = $object->getActivityId();
+            $statementActivityId = $obj->object->id;
+            if ($statementActivityId != $objActivityId) {
+                $this->log()->debug($this->msg("statement object id " . $statementActivityId . " != activityId " . $objActivityId));
                 $this->log()->debug($this->msg("is Substatement"));
                 return true;
             }
             else {
                 $this->log()->debug($this->msg("is not Substatement"));
                 return false;
+            }
+        }
+
+        private function isUnallocatableStatement($obj) {
+            $object = \ilObjectFactory::getInstanceByObjId($this->authToken->getObjId()); // get ActivityId in Constructor for better performance, is also used in handleEvaluationStatement
+            $objActivityId = $object->getActivityId();
+            $statementActivityId = $obj->object->id;
+            $activityFound = false;
+            if ( isset($obj->context) && isset($obj->context->contextActivities) )
+            {
+                if ( is_array($obj->context->contextActivities->parent) )
+                {
+                    foreach ($obj->context->contextActivities->parent as $p) {
+                        if ($p->id == $objActivityId) {
+                            $activityFound = true;
+                            $this->log()->debug($this->msg("activityId found in parent; is not an unallocatable Statement"));
+                            break;
+                        }
+                    }
+                }
+                if ( !$activityFound && is_array($obj->context->contextActivities->grouping) ) {
+                    foreach ($obj->context->contextActivities->grouping as $g) {
+                        if ($g->id == $objActivityId) {
+                            $activityFound = true;
+                            $this->log()->debug($this->msg("activityId found in grouping; is not an unallocatable Statement"));
+                            break;
+                        }
+                    }
+                }
+                if (!$activityFound) {
+                    $this->log()->debug($this->msg("no valid activityId found in contextActivities; is unallocatable Statement"));
+                    return true;
+                }
+                return false;
+            }
+            else {
+                $this->log()->debug($this->msg("no contextActivities; is unallocatable Statement"));
+                return true;
             }
         }
      }
